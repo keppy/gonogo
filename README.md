@@ -1,10 +1,10 @@
 # gonogo
 
-**47 out of 50 is not 94%.** It's somewhere between 84% and 98%, and if your target was 90% you cannot yet claim you hit it.
+**47 out of 50 is not 94%.** It lands somewhere between 84% and 98%, so if you were aiming at 90%, you can't yet say you got there.
 
-`gonogo` is a decision harness for agent pilots. You give it your real cases and your agent; it tells you whether to ship, whether to ship behind a human-review threshold, or whether to walk away — and it says "not enough evidence yet" when that's the truth.
+Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, ship it behind a human-review threshold, or walk away. When the honest answer is "you don't have enough cases to know," it says that instead of guessing.
 
-It is deliberately **not** another eval framework. There are good ones already. What they don't do is turn a score into a defensible deployment decision at the sample sizes real pilots actually have: 40 to 100 cases, not 10,000.
+This is deliberately **not** another eval framework — several good ones already exist. What none of them do is convert a score into a deployment decision you can defend at the sample sizes pilots actually run: forty to a hundred cases, not ten thousand.
 
 ```bash
 pip install gonogo
@@ -12,11 +12,13 @@ pip install gonogo
 
 ## The idea
 
-Three things go wrong when you evaluate an agent on a small set of real cases:
+Evaluate an agent on a small set of real cases and three things go wrong.
 
-1. **The point estimate flatters you.** 47/50 reads as 94%. The 95% interval is [83.8%, 97.9%]. Most tools print the 94% and stop.
-2. **Accuracy is the wrong question.** The business question is *"what fraction can I automate at 98% precision, and how many land on a human?"* That's a risk–coverage curve over an abstention threshold, and almost nothing computes it.
-3. **A dashboard is not a decision.** Someone still has to say ship or don't ship. That call should follow from the numbers, not from a meeting.
+**The point estimate flatters you.** 47/50 reads as 94%. The 95% interval is [83.8%, 97.9%]. Most tools print the 94% and stop there.
+
+**Accuracy isn't what anyone's asking.** The real question is how much work you can hand over at 98% precision, and how many cases end up on someone's desk. Answering it means a risk–coverage curve over an abstention threshold. Almost nothing computes one.
+
+**A dashboard isn't a decision.** Somebody still has to say ship or don't ship, and that call ought to fall out of the numbers rather than out of a meeting.
 
 ## Usage
 
