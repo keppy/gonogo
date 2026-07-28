@@ -66,7 +66,13 @@ def fields(required: list[str] | None = None, tolerance: float = 0.0) -> Scorer:
         wrong = []
         for k in keys:
             want, got = expected.get(k), output.get(k)
-            if isinstance(want, (int, float)) and isinstance(got, (int, float)) and tolerance:
+            if k not in output:
+                # A missing field is wrong even if the expected value is falsy;
+                # comparing two absences as equal strings would excuse it.
+                wrong.append(k)
+            elif _is_number(want) and _is_number(got):
+                # Numbers compare numerically even at tolerance zero, so an
+                # expected 1 is not failed against an output of 1.0.
                 if abs(float(got) - float(want)) > abs(float(want)) * tolerance:
                     wrong.append(k)
             elif _normalize(str(got)) != _normalize(str(want)):
@@ -81,8 +87,8 @@ def set_f1(threshold: float = 1.0) -> Scorer:
     """F1 over two collections, for multi-label or tag extraction."""
 
     def score(output: Any, expected: Any) -> Score:
-        got = {_normalize(str(x)) for x in (output or [])}
-        want = {_normalize(str(x)) for x in (expected or [])}
+        got = _label_set(output)
+        want = _label_set(expected)
         if not got and not want:
             return True, 1.0, ""
         overlap = len(got & want)
@@ -126,7 +132,11 @@ def judge(
         match = re.search(r"\b([1-9][0-9]?)\b", reply or "")
         if not match:
             return False, 0.0, f"judge returned no score: {(reply or '')[:80]!r}"
-        value = min(int(match.group(1)), scale)
+        value = int(match.group(1))
+        if value > scale:
+            # A score off the scale means the judge ignored the rubric format.
+            # Failing it is safer than clamping it to the most lenient reading.
+            return False, 0.0, f"judge returned {value}, outside the 1-{scale} scale: {(reply or '').strip()[:80]}"
         return value >= passing_score, value / scale, f"judge {value}/{scale}: {(reply or '').strip()[:120]}"
 
     return score
@@ -182,8 +192,11 @@ def validate_judge(
 
     kappa = stats["kappa"]
     if kappa != kappa:  # NaN
-        return JudgeValidation(n, stats["agreement"], kappa, lenient, strict, False,
-                               "kappa is undefined, usually because one label is constant")
+        return JudgeValidation(
+            n, stats["agreement"], kappa, lenient, strict, False,
+            "judge and human labels are both constant and identical, so agreement is "
+            "guaranteed by the base rate and carries no information; find harder cases",
+        )
     if kappa < min_kappa:
         skew = ("it passes cases you failed" if lenient > strict
                 else "it fails cases you passed" if strict > lenient
@@ -212,8 +225,26 @@ def judge_agreement(judge_passes: list[bool], human_passes: list[bool]) -> dict[
     agree = sum(1 for j, h in zip(judge_passes, human_passes) if j == h) / n
     pj, ph = sum(judge_passes) / n, sum(human_passes) / n
     chance = pj * ph + (1 - pj) * (1 - ph)
-    kappa = 1.0 if chance == 1.0 else (agree - chance) / (1 - chance)
+    # chance == 1 only when both raters are constant and identical. Agreement
+    # there is guaranteed by the base rate alone, so kappa is 0/0: undefined,
+    # not perfect. A judge that passed everything on a subset the human also
+    # fully passed has demonstrated nothing.
+    kappa = float("nan") if chance == 1.0 else (agree - chance) / (1 - chance)
     return {"n": n, "agreement": agree, "kappa": kappa}
+
+
+def _is_number(value: Any) -> bool:
+    # bool is an int subclass but True should compare as a label, not as 1.
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _label_set(value: Any) -> set[str]:
+    # A bare string is one label, not a collection of characters.
+    if value is None:
+        return set()
+    if isinstance(value, str):
+        value = [value]
+    return {_normalize(str(x)) for x in value}
 
 
 def _normalize(text: str) -> str:

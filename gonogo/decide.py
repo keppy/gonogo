@@ -79,10 +79,13 @@ def decide(
 
     passed = sum(1 for _, p in results if p)
     rate = wilson(passed, n, level)
-    ece = expected_calibration_error(results)
     notes: list[str] = []
 
     has_confidence = len({c for c, _ in results}) > 1
+    # With no confidence signal (every case defaulted to the same value), an
+    # ECE would just measure |accuracy - 1| and read as miscalibration the
+    # agent never claimed. Leave it NaN so reports omit the line entirely.
+    ece = expected_calibration_error(results) if has_confidence else float("nan")
     if not has_confidence:
         notes.append(
             "Every case reported the same confidence, so no abstention threshold "

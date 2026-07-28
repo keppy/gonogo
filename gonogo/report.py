@@ -66,7 +66,7 @@ class Report:
         out.append("")
         out.append(f"**{d.verdict.value}**: {_MARK[d.verdict]}")
         out.append("")
-        out.append(d.reason.capitalize() + ".")
+        out.append(d.reason[:1].upper() + d.reason[1:] + ".")
         out.append("")
 
         out.append("| | |")
@@ -268,6 +268,7 @@ class Report:
                 "n_covered": d.operating_point.n_covered,
                 "precision": d.operating_point.precision.point,
                 "precision_low": d.operating_point.precision.low,
+                "precision_high": d.operating_point.precision.high,
                 "n_deferred": d.operating_point.n_deferred,
             },
             "notes": d.notes,

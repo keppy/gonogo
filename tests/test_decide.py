@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from gonogo.decide import Verdict, decide
@@ -59,6 +61,13 @@ class TestHonesty:
         d = decide(results, target=0.95)
         assert any("same confidence" in n for n in d.notes)
         assert d.operating_point is None
+
+    def test_no_confidence_signal_means_no_calibration_claim(self):
+        # Every confidence defaulted to 1.0: an ECE here would just be
+        # |accuracy - 1|, miscalibration the agent never claimed.
+        results = [(1.0, True)] * 40 + [(1.0, False)] * 10
+        d = decide(results, target=0.95)
+        assert math.isnan(d.calibration_error)
 
     def test_inverted_confidence_yields_no_operating_point(self):
         # Confidence is inverted: high confidence is wrong, low is right. No cut

@@ -1,4 +1,5 @@
 import json
+import math
 
 import pytest
 
@@ -58,6 +59,23 @@ class TestRunner:
         # Abstentions land at zero confidence, so they defer first.
         assert report.decision.operating_point.n_deferred == 20
 
+    def test_out_of_range_confidence_fails_only_that_case(self):
+        # A bad confidence is a per-case failure, not a reason to lose the run.
+        def overconfident(case):
+            if case.id == "c3":
+                return ("yes", 1.2)
+            return ("yes", 0.9)
+
+        report = evaluate(overconfident, cases(10))
+        assert report.n_passed == 9
+        assert len(report.errors) == 1
+        assert "confidence" in report.errors[0].detail
+
+    def test_bool_is_not_a_confidence(self):
+        # ("answer", True) must not silently become confidence 1.0.
+        report = evaluate(lambda c: ("yes", True), cases(5))
+        assert all(r.prediction.confidence is None for r in report.results)
+
     def test_parallel_matches_serial(self):
         agent = lambda c: ("yes", 0.9)
         a = evaluate(agent, cases(40), workers=1)
@@ -91,6 +109,18 @@ class TestScorers:
         ok, score, _ = set_f1(threshold=0.9)(["a"], ["a", "b"])
         assert not ok and 0 < score < 1
 
+    def test_set_f1_treats_a_bare_string_as_one_label(self):
+        # Iterating a string as characters made "abc" match "cab".
+        assert not set_f1()("abc", "cab")[0]
+        assert set_f1()("refund", ["refund"])[0]
+
+    def test_fields_compares_numbers_numerically_at_zero_tolerance(self):
+        assert fields()({"a": 1.0}, {"a": 1})[0]
+        assert not fields()({"a": 1.5}, {"a": 1})[0]
+
+    def test_fields_fails_a_missing_key_even_against_a_falsy_expectation(self):
+        assert not fields()({}, {"a": ""})[0]
+
     def test_judge_parses_score_and_is_provider_free(self):
         scorer = judge(rubric="Is it right?", complete=lambda p: "5 - looks correct")
         assert scorer("x", "x")[0]
@@ -101,6 +131,12 @@ class TestScorers:
         scorer = judge(rubric="r", complete=lambda p: "I cannot say")
         ok, score, detail = scorer("x", "x")
         assert not ok and score == 0.0 and "no score" in detail
+
+    def test_judge_fails_scores_outside_the_scale_instead_of_clamping(self):
+        # "10" on a 1-5 scale is a malformed reply, not a perfect score.
+        scorer = judge(rubric="r", complete=lambda p: "10 - amazing")
+        ok, score, detail = scorer("x", "x")
+        assert not ok and score == 0.0 and "outside" in detail
 
     def test_judge_agreement_and_kappa(self):
         perfect = judge_agreement([True, False, True], [True, False, True])
@@ -143,6 +179,15 @@ class TestJudgeValidation:
 
     def test_empty_is_rejected(self):
         assert not validate_judge([], []).usable
+
+    def test_constant_identical_labels_are_not_evidence(self):
+        # A pass-everything judge on a subset the human also fully passed:
+        # 100% agreement, zero information. Kappa is undefined, not 1.0.
+        stats = judge_agreement([True] * 25, [True] * 25)
+        assert math.isnan(stats["kappa"])
+        v = validate_judge([True] * 25, [True] * 25)
+        assert not v.usable
+        assert "carries no information" in v.reason
 
 
 class TestCaseLoading:

@@ -104,6 +104,10 @@ def required_n(observed_rate: float, target: float, level: float = 0.95, max_n: 
         lo, hi = hi, hi * 2
     else:
         return None
+    # The predicate is not perfectly monotone in n because round(rate * n)
+    # jitters between adjacent n, so the binary search can land a few cases
+    # off the true minimum. Fine for its purpose: "roughly how many more
+    # cases", not a sample-size guarantee.
     while lo < hi:  # binary search the crossing point
         mid = (lo + hi) // 2
         if wilson(round(observed_rate * mid), mid, level).low >= target:

@@ -72,12 +72,16 @@ def evaluate(
 
 
 def _run_one(agent: Agent, case: Case) -> Prediction:
+    # Normalization stays inside the try: an agent returning an out-of-range
+    # confidence is a per-case failure, not a reason to abort the whole run.
     try:
         raw = agent(case)
+        if isinstance(raw, Prediction):
+            return raw
+        # bool is an int subclass; ("answer", True) is not a confidence of 1.0.
+        if (isinstance(raw, tuple) and len(raw) == 2
+                and isinstance(raw[1], (int, float)) and not isinstance(raw[1], bool)):
+            return Prediction(output=raw[0], confidence=float(raw[1]))
+        return Prediction(output=raw)
     except Exception as exc:
         return Prediction(output=None, error=f"{type(exc).__name__}: {exc}")
-    if isinstance(raw, Prediction):
-        return raw
-    if isinstance(raw, tuple) and len(raw) == 2 and isinstance(raw[1], (int, float)):
-        return Prediction(output=raw[0], confidence=float(raw[1]))
-    return Prediction(output=raw)
