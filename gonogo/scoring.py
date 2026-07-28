@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 import re
+from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
 Score = tuple[bool, float, str]
@@ -129,6 +130,70 @@ def judge(
         return value >= passing_score, value / scale, f"judge {value}/{scale}: {(reply or '').strip()[:120]}"
 
     return score
+
+
+@dataclass
+class JudgeValidation:
+    """Whether a judge is a usable stand-in for the human who labelled the set."""
+
+    n: int
+    agreement: float
+    kappa: float
+    judge_lenient: int      # judge passed, human failed -- inflates your score
+    judge_strict: int       # judge failed, human passed -- deflates it
+    usable: bool
+    reason: str
+
+    def __str__(self) -> str:
+        verdict = "USABLE" if self.usable else "NOT USABLE"
+        return (f"judge {verdict}: {self.agreement:.0%} agreement, kappa {self.kappa:.2f} "
+                f"on {self.n} hand-labelled cases ({self.reason})")
+
+
+def validate_judge(
+    judge_passes: list[bool],
+    human_passes: list[bool],
+    min_kappa: float = 0.6,
+    min_n: int = 20,
+) -> JudgeValidation:
+    """Check a judge against hand labels before trusting anything it scored.
+
+    Run this on a subset you labelled yourself. If it comes back not usable,
+    every number the judge produced downstream is decoration, and the honest
+    move is to fix the rubric rather than report the score.
+
+    Kappa rather than raw agreement is the gate because agreement is inflated
+    whenever one class dominates: a judge that passes everything scores 90%
+    agreement on a set that is 90% passes, while carrying no information at all.
+    """
+    stats = judge_agreement(judge_passes, human_passes)
+    n = int(stats["n"])
+    lenient = sum(1 for j, h in zip(judge_passes, human_passes) if j and not h)
+    strict = sum(1 for j, h in zip(judge_passes, human_passes) if h and not j)
+
+    if n == 0:
+        return JudgeValidation(0, float("nan"), float("nan"), 0, 0, False,
+                               "no hand-labelled cases to check against")
+    if n < min_n:
+        return JudgeValidation(
+            n, stats["agreement"], stats["kappa"], lenient, strict, False,
+            f"only {n} hand-labelled cases; label at least {min_n} before trusting the judge",
+        )
+
+    kappa = stats["kappa"]
+    if kappa != kappa:  # NaN
+        return JudgeValidation(n, stats["agreement"], kappa, lenient, strict, False,
+                               "kappa is undefined, usually because one label is constant")
+    if kappa < min_kappa:
+        skew = ("it passes cases you failed" if lenient > strict
+                else "it fails cases you passed" if strict > lenient
+                else "it disagrees in both directions")
+        return JudgeValidation(
+            n, stats["agreement"], kappa, lenient, strict, False,
+            f"kappa {kappa:.2f} is below {min_kappa:.2f} and {skew}; fix the rubric",
+        )
+    return JudgeValidation(n, stats["agreement"], kappa, lenient, strict, True,
+                           f"kappa {kappa:.2f} clears {min_kappa:.2f}")
 
 
 def judge_agreement(judge_passes: list[bool], human_passes: list[bool]) -> dict[str, float]:

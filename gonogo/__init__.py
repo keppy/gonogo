@@ -10,12 +10,14 @@ from .decide import Decision, Verdict, decide
 from .evaluate import evaluate
 from .report import Report
 from .scoring import (
+    JudgeValidation,
     exact,
     fields,
     judge,
     judge_agreement,
     numeric,
     set_f1,
+    validate_judge,
 )
 from .stats import (
     Interval,
@@ -35,6 +37,7 @@ __all__ = [
     "Decision", "Verdict", "decide",
     "evaluate", "Report",
     "exact", "fields", "judge", "judge_agreement", "numeric", "set_f1",
+    "JudgeValidation", "validate_judge",
     "Interval", "OperatingPoint", "best_operating_point",
     "expected_calibration_error", "reliability_table", "required_n",
     "risk_coverage", "wilson",

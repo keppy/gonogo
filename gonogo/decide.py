@@ -99,30 +99,41 @@ def decide(
         )
 
     # 2. A confident subset clears the bar, with the remainder going to a human.
-    point = None
+    #
+    # Note that a high calibration error does NOT disqualify a threshold. The
+    # precision at each cut point is measured directly from the results and
+    # carries its own interval, so it stands whether or not the confidence
+    # number is on a meaningful scale. Miscalibration only means the threshold
+    # value is a cut point rather than a probability -- worth saying out loud,
+    # not worth throwing away a working operating point over.
     if has_confidence:
         if ece > ECE_UNUSABLE:
             notes.append(
-                f"Calibration error {ece:.2f} exceeds {ECE_UNUSABLE:.2f}: stated confidence "
-                f"does not track accuracy, so thresholding on it is unreliable."
+                f"Calibration error {ece:.2f} exceeds {ECE_UNUSABLE:.2f}: the confidence score "
+                f"ranks cases usefully but its scale is not a probability. Treat any threshold "
+                f"below as an opaque cut point, and recalibrate before reading it as a percentage."
             )
-        else:
-            point = best_operating_point(results, target, min_coverage, level)
-            if point is not None:
-                return Decision(
-                    verdict=Verdict.AUTOMATE_WITH_REVIEW,
-                    reason=(f"overall pass rate {rate} misses the {target:.0%} target, but "
-                            f"abstaining below confidence {point.threshold:.2f} reaches "
-                            f"{point.precision.point:.1%} precision on {point.coverage:.0%} of cases"),
-                    pass_rate=rate, target=target, operating_point=point,
-                    calibration_error=ece, notes=notes,
-                )
-            near = best_operating_point(results, target, 0.0, level)
-            if near is not None:
-                notes.append(
-                    f"A threshold of {near.threshold:.2f} would hit the target but only covers "
-                    f"{near.coverage:.0%} of cases, below the {min_coverage:.0%} floor."
-                )
+        point = best_operating_point(results, target, min_coverage, level)
+        if point is not None:
+            notes.append(
+                f"The {point.threshold:.2f} threshold was chosen by searching this same case "
+                f"set, so its precision is optimistically biased. Re-measure it on fresh cases "
+                f"before relying on it."
+            )
+            return Decision(
+                verdict=Verdict.AUTOMATE_WITH_REVIEW,
+                reason=(f"overall pass rate {rate} misses the {target:.0%} target, but "
+                        f"abstaining below confidence {point.threshold:.2f} reaches "
+                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of cases"),
+                pass_rate=rate, target=target, operating_point=point,
+                calibration_error=ece, notes=notes,
+            )
+        near = best_operating_point(results, target, 0.0, level)
+        if near is not None:
+            notes.append(
+                f"A threshold of {near.threshold:.2f} would hit the target but only covers "
+                f"{near.coverage:.0%} of cases, below the {min_coverage:.0%} floor."
+            )
 
     # 3. The point estimate looks good but the sample can't support the claim.
     if rate.point >= target:

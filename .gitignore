@@ -7,3 +7,5 @@ dist/
 .venv/
 venv/
 .env
+examples/data/
+examples/banking77_report.html

@@ -68,11 +68,46 @@ Note what the table above actually proves: against a 95% target, *no* threshold 
 
 It also checks whether your confidence means anything. Expected calibration error above 0.15 and the harness refuses to recommend a threshold at all — thresholding on a number that doesn't track correctness is theater.
 
+## A real measurement
+
+`examples/banking77_routing.py` runs against [Banking77](https://github.com/PolyAI-LDN/task-specific-datasets) — 13,083 genuine retail-bank customer messages across 77 intents. The agent is an ordinary TF-IDF nearest-centroid baseline, stdlib only, no model API.
+
+On a pilot-sized sample of 250 cases against a 95% target:
+
+```
+ASSIST ONLY: Use it to draft, keep a human on every case.
+Pass rate 77.2% [71.6%, 82.0%]   (full 3,080-case split: 80.7% [79.3%, 82.1%])
+Calibration error 0.42 (ranks cases, scale unreliable)
+```
+
+The calibration table is the interesting part:
+
+| Stated confidence | Cases | Mean confidence | Actual accuracy |
+| --- | --- | --- | --- |
+| 0.0–0.2 | 83 | 0.11 | 61% |
+| 0.2–0.4 | 74 | 0.30 | 78% |
+| 0.4–0.6 | 50 | 0.51 | 84% |
+| 0.6–0.8 | 30 | 0.70 | 97% |
+| 0.8–1.0 | 13 | 0.87 | 100% |
+
+That model is *badly* miscalibrated — it says 0.11 and is right 61% of the time — while still ranking cases almost perfectly. Those are two different properties, and conflating them is a common way to throw away a usable signal. `gonogo` reports the calibration error, says the number isn't a probability, and still measures precision at each cut point empirically, because that measurement doesn't depend on the scale being meaningful.
+
 ## On LLM-as-judge
 
 `scoring.judge` takes any `complete(prompt) -> str` callable, so there's no provider SDK in the dependency tree.
 
-An unvalidated judge is the most common silent failure in agent evaluation. Before you trust one, hand-label a subset and check `judge_agreement(judge_labels, human_labels)`. Below about 0.6 on Cohen's kappa, your judge is measuring something other than what you care about, and every number downstream of it is decoration.
+An unvalidated judge is the most common silent failure in agent evaluation. Hand-label a subset and run `validate_judge(judge_labels, human_labels)`:
+
+```
+judge NOT USABLE: 90% agreement, kappa 0.00 on 30 hand-labelled cases
+(kappa 0.00 is below 0.60 and it passes cases you failed; fix the rubric)
+```
+
+That's the trap. A judge that rubber-stamps everything scores 90% agreement on a set that's 90% passes, and carries no information whatsoever. Kappa is the gate, not agreement.
+
+## Reports
+
+`report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON.
 
 ## Non-goals
 

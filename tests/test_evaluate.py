@@ -3,7 +3,9 @@ import json
 import pytest
 
 from gonogo import Case, Prediction, Verdict, evaluate
-from gonogo.scoring import exact, fields, judge, judge_agreement, numeric, set_f1
+from gonogo.scoring import (
+    exact, fields, judge, judge_agreement, numeric, set_f1, validate_judge,
+)
 
 
 def cases(n=10, expected="yes"):
@@ -112,6 +114,37 @@ class TestScorers:
             judge_agreement([True], [True, False])
 
 
+class TestJudgeValidation:
+    def test_high_agreement_with_zero_kappa_is_rejected(self):
+        # The classic trap: a judge that passes everything looks 90% accurate
+        # on a set that is 90% passes, while carrying no information at all.
+        v = validate_judge([True] * 30, [True] * 27 + [False] * 3)
+        assert v.agreement == pytest.approx(0.9)
+        assert v.kappa == pytest.approx(0.0)
+        assert not v.usable
+        assert "below" in v.reason
+
+    def test_a_judge_that_tracks_the_human_is_usable(self):
+        judge_labels = [True] * 20 + [False] * 10
+        human_labels = [True] * 18 + [False] * 2 + [False] * 8 + [True] * 2
+        v = validate_judge(judge_labels, human_labels)
+        assert v.usable and v.kappa > 0.6
+
+    def test_too_few_labels_is_rejected_even_when_perfect(self):
+        v = validate_judge([True] * 5, [True] * 5)
+        assert not v.usable
+        assert "at least 20" in v.reason
+
+    def test_direction_of_disagreement_is_reported(self):
+        # Judge passes 10 cases the human failed: it inflates the score.
+        v = validate_judge([True] * 25, [True] * 15 + [False] * 10)
+        assert v.judge_lenient == 10 and v.judge_strict == 0
+        assert "passes cases you failed" in v.reason
+
+    def test_empty_is_rejected(self):
+        assert not validate_judge([], []).usable
+
+
 class TestCaseLoading:
     def test_round_trip_jsonl(self, tmp_path):
         path = tmp_path / "cases.jsonl"
@@ -176,3 +209,38 @@ class TestReport:
         report = evaluate(lambda c: "yes", cases(100), task="Route ticket")
         assert "\n" not in report.summary()
         assert "Route ticket" in report.summary()
+
+
+class TestHtmlReport:
+    def test_standalone_is_a_full_document_with_inlined_css(self):
+        report = evaluate(lambda c: ("yes", 0.9), cases(200), task="Route ticket")
+        html = report.html()
+        assert html.startswith("<!doctype html>")
+        assert "<style>" in html and "http://" not in html and "https://" not in html
+        assert "Route ticket" in html
+
+    def test_fragment_omits_the_document_shell(self):
+        report = evaluate(lambda c: ("yes", 0.9), cases(200))
+        frag = report.html(standalone=False)
+        assert not frag.startswith("<!doctype")
+        assert frag.strip().startswith('<section class="gng"')
+        assert frag.strip().endswith("</section>")
+
+    def test_verdict_is_exposed_for_styling(self):
+        report = evaluate(lambda c: ("yes", 0.9), cases(200), target=0.95)
+        assert 'data-verdict="automate"' in report.html()
+        bad = evaluate(lambda c: ("no", 0.9), cases(200), target=0.95)
+        assert 'data-verdict="do-not-automate"' in bad.html()
+
+    def test_escapes_untrusted_text(self):
+        nasty = [Case(input="x", expected="<script>alert(1)</script>", id="<b>id</b>")]
+        report = evaluate(lambda c: "wrong", nasty, task="<img src=x onerror=1>")
+        html = report.html()
+        assert "<script>alert(1)</script>" not in html
+        assert "&lt;script&gt;" in html
+        assert "<img src=x onerror=1>" not in html
+
+    def test_rows_are_flagged_against_the_target(self):
+        report = evaluate(lambda c: ("yes", 0.9), cases(200), target=0.95)
+        html = report.html()
+        assert "gng-ok" in html

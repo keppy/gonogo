@@ -60,12 +60,30 @@ class TestHonesty:
         assert any("same confidence" in n for n in d.notes)
         assert d.operating_point is None
 
-    def test_miscalibrated_confidence_blocks_the_operating_point(self):
-        # Confidence is inverted: high confidence is wrong, low is right.
+    def test_inverted_confidence_yields_no_operating_point(self):
+        # Confidence is inverted: high confidence is wrong, low is right. No cut
+        # point can help, and the calibration error is called out.
         results = [(0.99, False)] * 30 + [(0.01, True)] * 30
         d = decide(results, target=0.90)
         assert d.operating_point is None
-        assert any("calibration" in n.lower() for n in d.notes)
+        assert any("calibration error" in n.lower() for n in d.notes)
+
+    def test_miscalibrated_but_discriminative_confidence_still_yields_a_threshold(self):
+        # Underconfident like a real classifier: the scale is wrong but the
+        # ranking is right. Precision at a cut point is measured, not inferred,
+        # so the threshold stands -- with the scale flagged as unreliable.
+        results = [(0.10, False)] * 40 + [(0.30, True)] * 80
+        d = decide(results, target=0.90)
+        assert d.calibration_error > 0.15
+        assert d.operating_point is not None
+        assert d.operating_point.threshold == 0.30
+        assert any("not a probability" in n for n in d.notes)
+
+    def test_selected_threshold_is_flagged_as_optimistically_biased(self):
+        results = [(0.95, True)] * 60 + [(0.30, False)] * 40
+        d = decide(results, target=0.90)
+        assert d.operating_point is not None
+        assert any("optimistically biased" in n for n in d.notes)
 
     def test_near_miss_coverage_is_explained(self):
         # A qualifying threshold exists but covers too little to be useful.
