@@ -42,9 +42,12 @@ class Report:
         return [r for r in self.results if r.prediction.error]
 
     def failures(self, limit: int | None = None) -> list[CaseResult]:
-        """Failed cases, worst score first -- the list to actually go read."""
+        """Failed cases, worst score first -- the list to actually go read.
+
+        `limit=None` returns every failure; `limit=0` returns none.
+        """
         worst = sorted((r for r in self.results if not r.passed), key=lambda r: r.score)
-        return worst[:limit] if limit else worst
+        return worst if limit is None else worst[:limit]
 
     def curve(self) -> list[OperatingPoint]:
         return risk_coverage([(r.confidence, r.passed) for r in self.results])

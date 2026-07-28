@@ -244,3 +244,10 @@ class TestHtmlReport:
         report = evaluate(lambda c: ("yes", 0.9), cases(200), target=0.95)
         html = report.html()
         assert "gng-ok" in html
+
+    def test_show_failures_zero_omits_the_section(self):
+        report = evaluate(lambda c: "no", cases(50), target=0.95)
+        assert report.failures(0) == []
+        assert len(report.failures()) == 50
+        assert "Failures worth reading" not in report.markdown(show_failures=0)
+        assert "Failures worth reading" not in report.html(show_failures=0)
