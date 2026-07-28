@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gonogo"
+name = "gonogo-eval"
 version = "0.1.0"
 description = "Decide whether an agent is good enough to ship. Honest statistics for pilot-scale case sets."
 readme = "README.md"

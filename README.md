@@ -7,8 +7,10 @@ Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, sh
 This is deliberately **not** another eval framework — several good ones already exist. What none of them do is convert a score into a deployment decision you can defend at the sample sizes pilots actually run: forty to a hundred cases, not ten thousand.
 
 ```bash
-pip install gonogo
+pip install gonogo-eval
 ```
+
+Installs as `gonogo-eval` (the plain `gonogo` name on PyPI belongs to an unrelated project); imports as `gonogo`.
 
 ## The idea
 
