@@ -10,3 +10,5 @@ venv/
 examples/data/
 examples/banking77_report.html
 examples/banking77_claude_report.html
+examples/banking77_baseline.json
+examples/banking77_claude.json

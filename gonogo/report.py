@@ -273,6 +273,20 @@ class Report:
             },
             "notes": d.notes,
             "metadata": self.metadata,
+            # Per-case outcomes, so a run saved today can be paired against one
+            # saved last week (see gonogo.compare). Deliberately excludes the
+            # case input and the agent's output: those can be large, and are
+            # often not JSON-serializable.
+            "cases": [
+                {
+                    "id": r.case.id,
+                    "passed": r.passed,
+                    "score": r.score,
+                    "confidence": r.confidence,
+                    "detail": r.detail,
+                }
+                for r in self.results
+            ],
         }
 
 

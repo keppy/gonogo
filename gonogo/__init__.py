@@ -6,6 +6,7 @@ this at all".
 """
 
 from .cases import Case, CaseResult, Prediction
+from .compare import Comparison, compare, outcomes
 from .decide import Decision, Verdict, decide
 from .evaluate import evaluate
 from .report import Report
@@ -34,6 +35,7 @@ __version__ = "0.1.1"
 
 __all__ = [
     "Case", "CaseResult", "Prediction",
+    "Comparison", "compare", "outcomes",
     "Decision", "Verdict", "decide",
     "evaluate", "Report",
     "exact", "fields", "judge", "judge_agreement", "numeric", "set_f1",

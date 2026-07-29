@@ -136,10 +136,20 @@ def main() -> None:
     )
     print(report.markdown())
 
-    out = os.path.join(os.path.dirname(__file__), "banking77_claude_report.html")
+    here = os.path.dirname(__file__)
+    out = os.path.join(here, "banking77_claude_report.html")
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(report.html())
+
+    # Per-case outcomes, so this run can be paired against the baseline later:
+    #   from gonogo import compare
+    #   compare(json.load(open("banking77_baseline.json")),
+    #           json.load(open("banking77_claude.json")))
+    data = os.path.join(here, "banking77_claude.json")
+    with open(data, "w", encoding="utf-8") as fh:
+        json.dump(report.to_dict(), fh, indent=2)
     print(f"\n[html report written to {out}]")
+    print(f"[per-case results written to {data}]")
 
 
 if __name__ == "__main__":

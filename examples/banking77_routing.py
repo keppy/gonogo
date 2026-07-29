@@ -18,6 +18,7 @@ Data is fetched once from the PolyAI repository and cached next to this file.
 from __future__ import annotations
 
 import csv
+import json
 import math
 import random
 import re
@@ -135,7 +136,12 @@ def main() -> None:
 
     out = Path(__file__).parent / "banking77_report.html"
     out.write_text(report.html(), encoding="utf-8")
+
+    # Per-case outcomes, so this baseline can be paired against a model run.
+    data = Path(__file__).parent / "banking77_baseline.json"
+    data.write_text(json.dumps(report.to_dict(), indent=2), encoding="utf-8")
     print(f"\n[html report written to {out}]")
+    print(f"[per-case results written to {data}]")
 
     # For context: the same agent measured on the full held-out split.
     full = [Case(input=t, expected=l, id=str(i)) for i, (t, l) in enumerate(test)]
