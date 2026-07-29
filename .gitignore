@@ -9,3 +9,4 @@ venv/
 .env
 examples/data/
 examples/banking77_report.html
+examples/banking77_claude_report.html

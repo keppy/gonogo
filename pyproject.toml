@@ -24,6 +24,9 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+# Only the Claude example needs a provider SDK. The library itself stays
+# dependency-free, and scoring.judge takes any complete(prompt) -> str callable.
+agent = ["anthropic>=0.69"]
 
 [project.urls]
 Homepage = "https://github.com/keppy/gonogo"
