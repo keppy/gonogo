@@ -70,7 +70,7 @@ That last row is why it uses the lower bound and not the point estimate. 100% pr
 
 Note what the table above actually proves: against a 95% target, *no* threshold works here. The 0.85 row looks great at 98.0% until you read its lower bound of 89.3%. So the verdict is `ASSIST ONLY`, not a ship — which is the answer you want before you wire it into production, not after.
 
-It also checks whether your confidence means anything. Expected calibration error above 0.15 and the harness refuses to recommend a threshold at all — thresholding on a number that doesn't track correctness is theater.
+It also checks whether your confidence means anything. Expected calibration error above 0.15 and the harness flags the confidence scale as not-a-probability — but it keeps the operating point, because precision at a cut point is measured directly from held-out results and doesn't depend on the scale meaning anything. Calibration and discrimination are different properties; see the next section for a model that fails one and aces the other.
 
 ## A real measurement
 
@@ -141,13 +141,37 @@ A mix of grouped and ungrouped cases is an error, not a guess. `required_n` answ
 
 Scorers may also take the case: `def scorer(output, expected, case)` is called with the `Case` as the third argument, so one run can route different cases to different scorers or read `case.metadata`. Two-argument scorers are unchanged.
 
+## Comparing two agents
+
+Swapping in a new model and watching the pass rate rise is the most common way a team convinces itself of an improvement that isn't there. Two overlapping intervals tell you very little — but when both agents ran the *same* cases, the results are paired, and the paired test is strictly more powerful. `compare()` runs McNemar's test on the shared case ids: cases both agents got right carry no information about which is better, so they're excluded rather than padding the denominator.
+
+```python
+from gonogo import compare
+
+print(compare(baseline_report, claude_report).summary())
+```
+
+Real output, a Claude agent vs the TF-IDF baseline on the same 250 Banking77 cases (`examples/banking77_claude_agent.py`):
+
+```
+Shared cases        250
+Agent A pass rate   77.2%
+Agent B pass rate   81.6%
+Difference          +4.4% [-0.8%, +9.6%] at 95%
+Disagreements       45 (17 only-A, 28 only-B)
+McNemar p           0.1352
+Verdict             no detectable difference; the sample cannot separate them
+```
+
+That's a 4.4-point improvement that would headline a slide — and the paired test says this sample can't back it up. `compare()` accepts `Report` objects or `Report.to_dict()` payloads interchangeably, because the realistic comparison is today's run against a JSON file written last week — `to_dict()` carries per-case outcomes for exactly this reason.
+
 ## Reports
 
-`report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON.
+`report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON, including per-case outcomes so runs can be paired and compared later.
 
 ## Non-goals
 
-This is a reference implementation, around 800 lines, readable in one sitting. It will not grow into:
+This is a reference implementation, around 1,400 lines, readable in one sitting. It will not grow into:
 
 - a hosted service or dashboard
 - tracing / observability

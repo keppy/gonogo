@@ -4,11 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0.post1] - 2026-09-15
+
+Documentation only; no code changes.
+
+### Fixed
+
+- README described the pre-0.1.1 calibration behavior ("refuses to recommend a
+  threshold"); it now matches the code, which keeps the operating point and
+  flags the scale.
+- README documents `compare()`/`outcomes()` and per-case outcomes in
+  `to_dict()`, which shipped in 0.2.0 without a README section or changelog
+  entry; the 0.2.0 entry below now includes them.
+
 ## [0.2.0] - 2026-09-15
 
 Three changes from using gonogo as the harness for a live meeting-diagramming
-agent at a hackathon. Each is a case where the library had no seam for
-something the evaluation needed, and the workaround lived in the caller.
+agent at a hackathon — each a case where the library had no seam for something
+the evaluation needed, and the workaround lived in the caller — plus paired
+comparison, from running a Claude agent head-to-head against the Banking77
+baseline.
 
 ### Added
 
@@ -37,6 +52,17 @@ something the evaluation needed, and the workaround lived in the caller.
   unchanged. `scoring.CaseScorer` names the protocol. Motivation: routing two
   scorers within one run required matching `expected` back to its case by
   object identity.
+- **Paired comparison.** `compare(report_a, report_b)` runs McNemar's test on
+  the case ids two runs share: cases both agents got right carry no
+  information about which is better, so they are excluded rather than padding
+  the denominator. Exact binomial up to 1,000 disagreements, chi-square with
+  continuity correction above. `Comparison.significant`, `.summary()`, and an
+  interval on the paired difference. `compare` accepts `Report` objects or
+  `Report.to_dict()` payloads — `to_dict()` now carries per-case
+  id/passed/score/confidence/detail so today's run can be paired against a
+  JSON file from last week. `outcomes()` extracts `{case_id: passed}` from
+  either form. New example: `examples/banking77_claude_agent.py`, a real
+  Claude agent against the TF-IDF baseline on the same case set.
 
 ### Changed
 
@@ -93,5 +119,7 @@ something the evaluation needed, and the workaround lived in the caller.
   measurement, judge validation, the five-verdict `decide()` layer,
   `evaluate()` runner, and Markdown/HTML score reports.
 
+[0.2.0.post1]: https://github.com/keppy/gonogo/compare/v0.2.0...v0.2.0.post1
+[0.2.0]: https://github.com/keppy/gonogo/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/keppy/gonogo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/keppy/gonogo/releases/tag/v0.1.0
