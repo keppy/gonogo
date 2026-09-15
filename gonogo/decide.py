@@ -45,6 +45,13 @@ class Decision:
     calibration_error: float = float("nan")
     needed_n: int | None = None
     notes: list[str] = field(default_factory=list)
+    # Set when the trials were groups of cases rather than cases. Then
+    # pass_rate.n and needed_n count groups, and the case count is context.
+    n_groups: int | None = None
+
+    @property
+    def unit(self) -> str:
+        return "groups" if self.n_groups is not None else "cases"
 
     @property
     def can_automate(self) -> bool:
@@ -56,8 +63,12 @@ def decide(
     target: float = 0.95,
     level: float = 0.95,
     min_coverage: float = MIN_USEFUL_COVERAGE,
+    unit: str = "cases",
 ) -> Decision:
-    """Turn per-case (confidence, passed) results into a deployment decision.
+    """Turn per-trial (confidence, passed) results into a deployment decision.
+
+    `unit` is the word for one trial in the wording -- "cases" normally,
+    "groups" when `evaluate` folded correlated cases into one trial each.
 
     The ordering is deliberate. We ask "is the whole task good enough?" first,
     then "is some confident subset good enough?", and only then do we consider
@@ -96,7 +107,7 @@ def decide(
     if rate.low >= target:
         return Decision(
             verdict=Verdict.AUTOMATE,
-            reason=(f"pass rate {rate} clears the {target:.0%} target across all cases "
+            reason=(f"pass rate {rate} clears the {target:.0%} target across all {unit} "
                     f"at the {level:.0%} level"),
             pass_rate=rate, target=target, calibration_error=ece, notes=notes,
         )
@@ -127,7 +138,7 @@ def decide(
                 verdict=Verdict.AUTOMATE_WITH_REVIEW,
                 reason=(f"overall pass rate {rate} misses the {target:.0%} target, but "
                         f"abstaining below confidence {point.threshold:.2f} reaches "
-                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of cases"),
+                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of {unit}"),
                 pass_rate=rate, target=target, operating_point=point,
                 calibration_error=ece, notes=notes,
             )
@@ -135,7 +146,7 @@ def decide(
         if near is not None:
             notes.append(
                 f"A threshold of {near.threshold:.2f} would hit the target but only covers "
-                f"{near.coverage:.0%} of cases, below the {min_coverage:.0%} floor."
+                f"{near.coverage:.0%} of {unit}, below the {min_coverage:.0%} floor."
             )
 
     # 3. The point estimate looks good but the sample can't support the claim.
@@ -143,10 +154,10 @@ def decide(
         needed = required_n(rate.point, target, level)
         return Decision(
             verdict=Verdict.INSUFFICIENT_EVIDENCE,
-            reason=(f"observed {rate.point:.1%} on {n} cases is above the {target:.0%} target, "
+            reason=(f"observed {rate.point:.1%} on {n} {unit} is above the {target:.0%} target, "
                     f"but the {level:.0%} interval reaches down to {rate.low:.1%}"),
             pass_rate=rate, target=target, calibration_error=ece, needed_n=needed,
-            notes=notes + ([f"At this rate, about {needed} cases would be needed to claim "
+            notes=notes + ([f"At this rate, about {needed} {unit} would be needed to claim "
                             f"{target:.0%}; you have {n}."] if needed else []),
         )
 

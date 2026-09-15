@@ -8,10 +8,12 @@ this at all".
 from .cases import Case, CaseResult, Prediction
 from .compare import Comparison, compare, outcomes
 from .decide import Decision, Verdict, decide
-from .evaluate import evaluate
+from .evaluate import GROUP_RULES, evaluate, group_results
 from .report import Report
 from .scoring import (
+    CaseScorer,
     JudgeValidation,
+    Scorer,
     exact,
     fields,
     judge,
@@ -31,14 +33,15 @@ from .stats import (
     wilson,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
     "Case", "CaseResult", "Prediction",
     "Comparison", "compare", "outcomes",
     "Decision", "Verdict", "decide",
-    "evaluate", "Report",
+    "evaluate", "group_results", "GROUP_RULES", "Report",
     "exact", "fields", "judge", "judge_agreement", "numeric", "set_f1",
+    "Scorer", "CaseScorer",
     "JudgeValidation", "validate_judge",
     "Interval", "OperatingPoint", "best_operating_point",
     "expected_calibration_error", "reliability_table", "required_n",

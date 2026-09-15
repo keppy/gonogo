@@ -41,6 +41,38 @@ class Report:
     def errors(self) -> list[CaseResult]:
         return [r for r in self.results if r.prediction.error]
 
+    @property
+    def n_groups(self) -> int | None:
+        return self.decision.n_groups
+
+    @property
+    def grouped(self) -> bool:
+        return self.decision.n_groups is not None
+
+    def groups(self) -> dict[str, list[CaseResult]]:
+        """Results by case group, first-seen order. Empty when nothing is grouped."""
+        out: dict[str, list[CaseResult]] = {}
+        for r in self.results:
+            if r.case.group is not None:
+                out.setdefault(r.case.group, []).append(r)
+        return out
+
+    def n_groups_passed(self) -> int:
+        return sum(1 for rs in self.groups().values() if all(r.passed for r in rs))
+
+    def recurring(self) -> list[tuple[str, int, int]]:
+        """Case ids that appear in more than one group: (id, passed_in, groups_with_it).
+
+        When the same check is run once per group, this is the row a reader
+        wants -- "matched in 9 of 10 runs" -- instead of ten near-identical
+        failure lines.
+        """
+        seen: dict[str, list[bool]] = {}
+        for r in self.results:
+            if r.case.group is not None and r.case.id is not None:
+                seen.setdefault(str(r.case.id), []).append(r.passed)
+        return [(cid, sum(v), len(v)) for cid, v in seen.items() if len(v) > 1]
+
     def failures(self, limit: int | None = None) -> list[CaseResult]:
         """Failed cases, worst score first -- the list to actually go read.
 
@@ -55,6 +87,9 @@ class Report:
     def summary(self) -> str:
         """One line, for a terminal or a commit message."""
         d = self.decision
+        if self.grouped:
+            return (f"{self.task}: {d.verdict.value} ({d.pass_rate} on {d.n_groups} groups, "
+                    f"{self.n} cases)")
         return f"{self.task}: {d.verdict.value} ({d.pass_rate} on {self.n} cases)"
 
     def markdown(self, show_failures: int = 5) -> str:
@@ -71,8 +106,13 @@ class Report:
 
         out.append("| | |")
         out.append("| --- | --- |")
-        out.append(f"| Cases evaluated | {self.n} |")
-        out.append(f"| Passed | {self.n_passed} |")
+        if self.grouped:
+            out.append(f"| Groups evaluated | {d.n_groups} |")
+            out.append(f"| Groups where every case passed | {self.n_groups_passed()} |")
+            out.append(f"| Cases (context, not trials) | {self.n_passed} of {self.n} passed |")
+        else:
+            out.append(f"| Cases evaluated | {self.n} |")
+            out.append(f"| Passed | {self.n_passed} |")
         out.append(f"| Pass rate | {d.pass_rate} |")
         out.append(f"| Target | {d.target:.0%} |")
         if d.calibration_error == d.calibration_error:  # not NaN
@@ -82,10 +122,26 @@ class Report:
             out.append(f"| Cases that errored | {len(self.errors)} |")
         out.append("")
 
-        out.append(f"The pass rate is reported with a {d.pass_rate.level:.0%} confidence interval. "
-                   f"With {self.n} cases the true rate could plausibly be anywhere in that range, "
-                   f"which is why the interval and not the headline number drives the decision.")
+        if self.grouped:
+            out.append(f"The pass rate is over {d.n_groups} groups, not {self.n} cases: cases in a "
+                       f"group share one draw of the system, so they are not independent trials. "
+                       f"It is reported with a {d.pass_rate.level:.0%} confidence interval, and with "
+                       f"{d.n_groups} groups the true rate could plausibly be anywhere in that range.")
+        else:
+            out.append(f"The pass rate is reported with a {d.pass_rate.level:.0%} confidence interval. "
+                       f"With {self.n} cases the true rate could plausibly be anywhere in that range, "
+                       f"which is why the interval and not the headline number drives the decision.")
         out.append("")
+
+        recurring = self.recurring()
+        if recurring:
+            out.append("## Per case, across groups")
+            out.append("")
+            out.append("| Case | Passed in |")
+            out.append("| --- | --- |")
+            for cid, k, total in recurring:
+                out.append(f"| `{cid}` | {k} of {total} groups |")
+            out.append("")
 
         if d.operating_point:
             p = d.operating_point
@@ -162,8 +218,14 @@ class Report:
         rows.append(f'<p class="gng-reason">{e(d.reason[:1].upper() + d.reason[1:])}.</p>')
 
         rows.append('<dl class="gng-facts">')
-        facts = [("Cases evaluated", str(self.n)), ("Passed", str(self.n_passed)),
-                 ("Pass rate", str(d.pass_rate)), ("Target", f"{d.target:.0%}")]
+        if self.grouped:
+            facts = [("Groups evaluated", str(d.n_groups)),
+                     ("Groups where every case passed", str(self.n_groups_passed())),
+                     ("Cases (context, not trials)", f"{self.n_passed} of {self.n} passed"),
+                     ("Pass rate", str(d.pass_rate)), ("Target", f"{d.target:.0%}")]
+        else:
+            facts = [("Cases evaluated", str(self.n)), ("Passed", str(self.n_passed)),
+                     ("Pass rate", str(d.pass_rate)), ("Target", f"{d.target:.0%}")]
         if d.calibration_error == d.calibration_error:
             usable = "well calibrated" if d.calibration_error <= 0.15 else "ranks cases, scale unreliable"
             facts.append(("Calibration error", f"{d.calibration_error:.2f} ({usable})"))
@@ -175,10 +237,28 @@ class Report:
             rows.append(f'<div><dt>{e(label)}</dt><dd>{e(value)}</dd></div>')
         rows.append('</dl>')
 
-        rows.append(f'<p class="gng-note">The pass rate carries a {d.pass_rate.level:.0%} '
-                    f'confidence interval. With {self.n} cases the true rate could plausibly sit '
-                    f'anywhere in that range, which is why the interval and not the headline '
-                    f'number drives the decision.</p>')
+        if self.grouped:
+            rows.append(f'<p class="gng-note">The pass rate is over {d.n_groups} groups, not '
+                        f'{self.n} cases: cases in a group share one draw of the system, so they '
+                        f'are not independent trials. It carries a {d.pass_rate.level:.0%} '
+                        f'confidence interval, and with {d.n_groups} groups the true rate could '
+                        f'plausibly sit anywhere in that range.</p>')
+        else:
+            rows.append(f'<p class="gng-note">The pass rate carries a {d.pass_rate.level:.0%} '
+                        f'confidence interval. With {self.n} cases the true rate could plausibly sit '
+                        f'anywhere in that range, which is why the interval and not the headline '
+                        f'number drives the decision.</p>')
+
+        recurring = self.recurring()
+        if recurring:
+            rows.append('<table class="gng-table"><caption>Per case, across groups</caption><thead><tr>'
+                        '<th scope="col">Case</th><th scope="col">Passed in</th>'
+                        '</tr></thead><tbody>')
+            for cid, k, total in recurring:
+                flag = "ok" if k == total else "under"
+                rows.append(f'<tr><td><code>{e(cid)}</code></td>'
+                            f'<td class="gng-{flag}">{k} of {total} groups</td></tr>')
+            rows.append('</tbody></table>')
 
         if d.operating_point:
             p = d.operating_point
@@ -257,6 +337,8 @@ class Report:
             "reason": d.reason,
             "n": self.n,
             "n_passed": self.n_passed,
+            "n_groups": d.n_groups,
+            "n_groups_passed": self.n_groups_passed() if self.grouped else None,
             "pass_rate": {"point": d.pass_rate.point, "low": d.pass_rate.low,
                           "high": d.pass_rate.high, "level": d.pass_rate.level},
             "target": d.target,
@@ -280,6 +362,7 @@ class Report:
             "cases": [
                 {
                     "id": r.case.id,
+                    "group": r.case.group,
                     "passed": r.passed,
                     "score": r.score,
                     "confidence": r.confidence,

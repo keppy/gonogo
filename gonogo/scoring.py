@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 import re
+import warnings
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
@@ -16,6 +17,15 @@ Score = tuple[bool, float, str]
 
 class Scorer(Protocol):
     def __call__(self, output: Any, expected: Any) -> Score: ...
+
+
+class CaseScorer(Protocol):
+    """A scorer that also sees the Case, for routing or reading metadata.
+
+    `evaluate` accepts either form and passes the Case only to scorers that
+    declare a third positional parameter.
+    """
+    def __call__(self, output: Any, expected: Any, case: Any) -> Score: ...
 
 
 def exact() -> Scorer:
@@ -144,69 +154,135 @@ def judge(
 
 @dataclass
 class JudgeValidation:
-    """Whether a judge is a usable stand-in for the human who labelled the set."""
+    """Whether a judge is a usable stand-in for whoever labelled the set.
+
+    `label_source` records who that was, and the wording of every rendering
+    follows it. Only `"human"` earns the word human anywhere in the output.
+    `"model"` means a second model labelled the set, which measures agreement
+    between two machines and nothing more. `"structural"` means deterministic
+    checks (duplicates, dangling references, malformed output) that can see a
+    judge waving through broken cases but cannot see meaning at all.
+    """
 
     n: int
     agreement: float
     kappa: float
-    judge_lenient: int      # judge passed, human failed -- inflates your score
-    judge_strict: int       # judge failed, human passed -- deflates it
+    judge_lenient: int      # judge passed, reference failed -- inflates your score
+    judge_strict: int       # judge failed, reference passed -- deflates it
     usable: bool
     reason: str
+    label_source: str = "human"
+    label_source_note: str = ""
+
+    @property
+    def labels_are_human(self) -> bool:
+        return self.label_source == "human"
+
+    def describe_labels(self) -> str:
+        """The labels, in words that are safe to put in front of a reader."""
+        base = {
+            "human": "hand-labelled cases",
+            "model": "cases labelled by an independent model",
+            "structural": "cases labelled by deterministic structural checks",
+        }.get(self.label_source, f"cases labelled by {self.label_source}")
+        return f"{base} ({self.label_source_note})" if self.label_source_note else base
 
     def __str__(self) -> str:
         verdict = "USABLE" if self.usable else "NOT USABLE"
         return (f"judge {verdict}: {self.agreement:.0%} agreement, kappa {self.kappa:.2f} "
-                f"on {self.n} hand-labelled cases ({self.reason})")
+                f"on {self.n} {self.describe_labels()} ({self.reason})")
 
 
 def validate_judge(
     judge_passes: list[bool],
-    human_passes: list[bool],
+    reference_passes: list[bool] | None = None,
     min_kappa: float = 0.6,
     min_n: int = 20,
+    *,
+    label_source: str = "human",
+    label_source_note: str = "",
+    human_passes: list[bool] | None = None,
 ) -> JudgeValidation:
-    """Check a judge against hand labels before trusting anything it scored.
+    """Check a judge against reference labels before trusting anything it scored.
 
-    Run this on a subset you labelled yourself. If it comes back not usable,
-    every number the judge produced downstream is decoration, and the honest
-    move is to fix the rubric rather than report the score.
+    Run this on a subset labelled independently of the judge. If it comes back
+    not usable, every number the judge produced downstream is decoration, and
+    the honest move is to fix the rubric rather than report the score.
+
+    Say where the labels came from. `label_source="human"` (the default) is the
+    only source that supports the claim "validated against humans", and the
+    result's wording will not make that claim for any other source. A second
+    model's labels are `"model"`; deterministic checks are `"structural"`. The
+    parameter used to be called `human_passes`; that name still works and
+    warns, because a function that calls every label human is how model labels
+    end up described as human validation.
 
     Kappa rather than raw agreement is the gate because agreement is inflated
     whenever one class dominates: a judge that passes everything scores 90%
     agreement on a set that is 90% passes, while carrying no information at all.
+
+    Structural labels are the exception. They can only fail cases that are
+    visibly broken, so a stricter judge is expected and kappa against them is
+    bounded. There the gate is leniency alone: a judge that passes a case the
+    structural check failed is rubber-stamping, whatever its kappa.
     """
-    stats = judge_agreement(judge_passes, human_passes)
+    if human_passes is not None:
+        if reference_passes is not None:
+            raise TypeError("pass either reference_passes or human_passes, not both")
+        warnings.warn(
+            "validate_judge(human_passes=...) is deprecated; pass reference_passes and "
+            "say where the labels came from with label_source",
+            DeprecationWarning, stacklevel=2,
+        )
+        reference_passes = human_passes
+    if reference_passes is None:
+        raise TypeError("validate_judge() missing required argument: 'reference_passes'")
+    if not label_source or not label_source.strip():
+        raise ValueError("label_source must say where the labels came from")
+
+    stats = judge_agreement(judge_passes, reference_passes)
     n = int(stats["n"])
-    lenient = sum(1 for j, h in zip(judge_passes, human_passes) if j and not h)
-    strict = sum(1 for j, h in zip(judge_passes, human_passes) if h and not j)
+    lenient = sum(1 for j, h in zip(judge_passes, reference_passes) if j and not h)
+    strict = sum(1 for j, h in zip(judge_passes, reference_passes) if h and not j)
+    human = label_source == "human"
+    who = "you" if human else "the reference"
+
+    def result(usable: bool, reason: str) -> JudgeValidation:
+        return JudgeValidation(n, stats["agreement"], stats["kappa"], lenient, strict,
+                               usable, reason, label_source=label_source,
+                               label_source_note=label_source_note)
 
     if n == 0:
-        return JudgeValidation(0, float("nan"), float("nan"), 0, 0, False,
-                               "no hand-labelled cases to check against")
+        return result(False, "no labelled cases to check against")
     if n < min_n:
-        return JudgeValidation(
-            n, stats["agreement"], stats["kappa"], lenient, strict, False,
-            f"only {n} hand-labelled cases; label at least {min_n} before trusting the judge",
-        )
+        return result(False, f"only {n} labelled cases; label at least {min_n} before trusting the judge")
+
+    if label_source == "structural":
+        if lenient:
+            return result(False, (
+                f"the judge passed {lenient} case{'s' if lenient != 1 else ''} that a structural "
+                f"check failed; that is rubber-stamping, and no kappa excuses it"))
+        return result(True, (
+            f"the judge passed nothing the structural checks failed; kappa {stats['kappa']:.2f} "
+            f"is not the gate here, since structural labels cannot see meaning and a stricter "
+            f"judge is expected -- this rules out rubber-stamping, it does not validate the judge"))
 
     kappa = stats["kappa"]
     if kappa != kappa:  # NaN
-        return JudgeValidation(
-            n, stats["agreement"], kappa, lenient, strict, False,
-            "judge and human labels are both constant and identical, so agreement is "
-            "guaranteed by the base rate and carries no information; find harder cases",
-        )
+        return result(False, (
+            "judge and reference labels are both constant and identical, so agreement is "
+            "guaranteed by the base rate and carries no information; find harder cases"))
     if kappa < min_kappa:
-        skew = ("it passes cases you failed" if lenient > strict
-                else "it fails cases you passed" if strict > lenient
+        skew = (f"it passes cases {who} failed" if lenient > strict
+                else f"it fails cases {who} passed" if strict > lenient
                 else "it disagrees in both directions")
-        return JudgeValidation(
-            n, stats["agreement"], kappa, lenient, strict, False,
-            f"kappa {kappa:.2f} is below {min_kappa:.2f} and {skew}; fix the rubric",
-        )
-    return JudgeValidation(n, stats["agreement"], kappa, lenient, strict, True,
-                           f"kappa {kappa:.2f} clears {min_kappa:.2f}")
+        return result(False, f"kappa {kappa:.2f} is below {min_kappa:.2f} and {skew}; fix the rubric")
+
+    if human:
+        return result(True, f"kappa {kappa:.2f} clears {min_kappa:.2f}")
+    return result(True, (
+        f"kappa {kappa:.2f} clears {min_kappa:.2f} against {label_source} labels; "
+        f"this is agreement with {label_source} labels, not human validation"))
 
 
 def judge_agreement(judge_passes: list[bool], human_passes: list[bool]) -> dict[str, float]:
