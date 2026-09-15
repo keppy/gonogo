@@ -21,11 +21,17 @@ class Case:
     expected: Any
     id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Cases that share a group came from one draw of the system under test:
+    # one run of a scenario, one document's fields, one conversation's turns.
+    # They are not independent trials. With evaluate(group_rule="all") the
+    # pass rate and its interval are over groups, and the case count is context.
+    group: str | None = None
 
     @classmethod
     def from_jsonl(cls, path: str | Path) -> list["Case"]:
         """Load cases from a JSONL file with `input` and `expected` keys.
 
+        An optional `group` key marks cases that share one draw (see `group`).
         Any other keys land in `metadata`, so you can slice a report by
         customer, document type, or difficulty later.
         """
@@ -45,11 +51,14 @@ class Case:
                 for required in ("input", "expected"):
                     if required not in row:
                         raise ValueError(f"{path}:{lineno}: missing required key {required!r}")
+                group = row.get("group")
                 cases.append(cls(
                     input=row["input"],
                     expected=row["expected"],
                     id=row.get("id") or f"case-{lineno}",
-                    metadata={k: v for k, v in row.items() if k not in ("input", "expected", "id")},
+                    metadata={k: v for k, v in row.items()
+                              if k not in ("input", "expected", "id", "group")},
+                    group=None if group is None else str(group),
                 ))
         if not cases:
             raise ValueError(f"{path}: no cases found")
@@ -60,6 +69,8 @@ class Case:
         with Path(path).open("w", encoding="utf-8") as fh:
             for c in cases:
                 row = {"id": c.id, "input": c.input, "expected": c.expected, **c.metadata}
+                if c.group is not None:
+                    row["group"] = c.group
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 

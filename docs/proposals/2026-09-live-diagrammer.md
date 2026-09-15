@@ -1,5 +1,12 @@
 # What Live Diagrammer taught gonogo
 
+> **Status: implemented in 0.2.0** (2026-09-15). Items 1, 2 and 3 below landed
+> as described, with two deviations: `group_rule` offers `"none"` and `"all"`
+> only -- `"mean"` needs an interval for fractional successes that Wilson does
+> not give, so it waits for a real need; and `Decision` gained `n_groups` and a
+> `unit` property rather than a separate `n_cases`, since the report already
+> holds the case count. The "also observed" items are still just observed.
+
 Two features, both built locally around gonogo 0.1.1 at the Sep 12 hackathon
 because the library had no seam for them. Both are generic. Both should move
 up. A third, smaller API observation follows.

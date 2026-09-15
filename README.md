@@ -109,6 +109,38 @@ judge NOT USABLE: 90% agreement, kappa 0.00 on 30 hand-labelled cases
 
 That's the trap. A judge that rubber-stamps everything scores 90% agreement on a set that's 90% passes, and carries no information whatsoever. Kappa is the gate, not agreement.
 
+**Say where the labels came from.** The second argument used to be called `human_passes`, and a function that calls every label human is how a second model's labels end up described as human validation. Pass `label_source`:
+
+```python
+validate_judge(judge_labels, model_labels, label_source="model",
+               label_source_note="nemotron-3-super-120b via OpenRouter")
+# judge USABLE: 77% agreement, kappa 0.42 on 20 cases labelled by an independent
+# model (nemotron-3-super-120b via OpenRouter) (kappa 0.42 clears 0.60 against
+# model labels; this is agreement with model labels, not human validation)
+```
+
+`"human"` is the default and the only source that earns the word *human* anywhere in the output. `"structural"` is for deterministic checks (duplicates, dangling references, malformed output): they can catch a judge waving broken cases through, but cannot see meaning, so there the gate is leniency alone and kappa is reported without being the verdict. The old keyword still works and warns.
+
+## Correlated cases
+
+Ten runs of one scenario with four checks each is not forty trials. The four checks share one draw of the system, and an interval over forty says more than the evidence does. Worse, it can centre on an average that hides a check failing in every single run:
+
+```
+ungrouped: 80.0% [67.0%, 88.8%] on 50 cases      INSUFFICIENT EVIDENCE
+grouped  :  0.0% [ 0.0%, 27.8%] on 10 groups     DO NOT AUTOMATE
+```
+
+Same fifty cases. Put a `group` on each case (one per run, per document, per conversation) and ask for `group_rule="all"`: one trial per group, passing only if every case in it passed, interval over groups. The report keeps the case count as context and adds a row per recurring case id -- *`recovery`: 0 of 10 groups* -- which is usually the line you wanted.
+
+```python
+cases = [Case(input=..., expected=..., id="recovery", group="run-3"), ...]
+report = evaluate(agent, cases, scorer=scorer, group_rule="all")
+```
+
+A mix of grouped and ungrouped cases is an error, not a guess. `required_n` answers in groups when the trials are groups.
+
+Scorers may also take the case: `def scorer(output, expected, case)` is called with the `Case` as the third argument, so one run can route different cases to different scorers or read `case.metadata`. Two-argument scorers are unchanged.
+
 ## Reports
 
 `report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON.
