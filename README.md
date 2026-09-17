@@ -109,6 +109,20 @@ judge NOT USABLE: 90% agreement, kappa 0.00 on 30 hand-labelled cases
 
 That's the trap. A judge that rubber-stamps everything scores 90% agreement on a set that's 90% passes, and carries no information whatsoever. Kappa is the gate, not agreement.
 
+### What kappa actually measures
+
+Two raters grade the same cases blind and you count how often they agree. Cohen's kappa is that agreement minus whatever they would have hit by chance, rescaled so that 1.0 is perfect agreement and 0 is no better than luck:
+
+```
+kappa = (observed agreement − chance agreement) / (1 − chance agreement)
+```
+
+The obvious question is where "chance agreement" comes from. It comes from each rater's own base rate. If rater A passes 80% of cases and rater B passes 70%, then two raters with those habits who were otherwise flipping coins would both say *pass* on 0.80 × 0.70 = 56% of cases and both say *fail* on 0.20 × 0.30 = 6%. Add those and they agree 62% of the time without ever looking at a case. That 62% is the chance term; kappa only credits agreement above it. So 70% observed agreement against a 62% chance floor is kappa ≈ 0.21 — the two raters are barely doing better than their biases alone would produce.
+
+Now the example above. The judge passes everything (100%), the human passes 90%. Chance agreement is 1.00 × 0.90 + 0.00 × 0.10 = 90% — exactly the observed agreement — so kappa is (0.90 − 0.90) / (1 − 0.90) = 0. The 90% was entirely purchased by the base rate, and kappa says so. Agreement tells you how often two raters said the same thing; kappa tells you whether that was because they were both looking at the case.
+
+This is why the gate is 0.60 rather than "90% agreement." The threshold is conventional (Landis and Koch call 0.61–0.80 "substantial"), not derived, and reasonable people put it elsewhere; `validate_judge(..., min_kappa=...)` moves it. One edge case: if both raters are constant and identical — the judge passed everything on a subset the human also fully passed — chance agreement is 100%, kappa is 0/0, and the judge is rejected rather than reported as perfect. Agreeing with someone about a set where there was nothing to disagree on has demonstrated nothing.
+
 **Say where the labels came from.** The second argument used to be called `human_passes`, and a function that calls every label human is how a second model's labels end up described as human validation. Pass `label_source`:
 
 ```python

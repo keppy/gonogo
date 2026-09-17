@@ -290,7 +290,11 @@ def judge_agreement(judge_passes: list[bool], human_passes: list[bool]) -> dict[
 
     Report this alongside any judge-scored result. Raw agreement alone is
     misleading when classes are imbalanced, so Cohen's kappa is included:
-    below about 0.6, the judge is not a usable stand-in for a human.
+    (agreement - chance) / (1 - chance), where chance is the agreement two
+    raters with these base rates would reach by luck -- the probability both
+    say pass plus the probability both say fail, each taken as the product of
+    the two raters' marginal rates. Below about 0.6, the judge is not a
+    usable stand-in for a human.
     """
     if len(judge_passes) != len(human_passes):
         raise ValueError("judge and human label lists must be the same length")
