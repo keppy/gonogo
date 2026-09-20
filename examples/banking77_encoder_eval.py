@@ -86,17 +86,17 @@ def batch_agent(agent, cases: list[Case]) -> dict[str, Prediction]:
 
 
 def confidence_aware():
-    """Score = confidence when correct, 0 when wrong.
+    """Exact match on the label; confidence rides on Prediction.confidence.
 
-    A plain exact() scorer would leave ECE as NaN and the operating point
-    empty; passing the classifier's real confidence through is what lets the
-    risk-coverage curve answer the automation question.
+    gonogo reads the agent's confidence from ``Prediction.confidence`` (the
+    agent sets it to the temperature-scaled softmax max), which is what feeds
+    ECE and the coverage/precision table. The scorer only judges the label —
+    a plain exact match — so a scorer error can never take down the run.
     """
 
     def score(output, expected):
-        label, confidence = output
-        ok = label == expected
-        return ok, confidence if ok else 0.0, "" if ok else f"expected {expected!r}, got {label!r}"
+        ok = output == expected
+        return ok, 1.0 if ok else 0.0, "" if ok else f"expected {expected!r}, got {output!r}"
 
     return score
 
