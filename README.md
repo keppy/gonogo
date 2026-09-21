@@ -78,6 +78,10 @@ It also checks whether your confidence means anything. Expected calibration erro
 
 On a pilot-sized sample of 250 cases against a 95% target:
 
+[![Fine-tuning an encoder and getting a go/no-go verdict — thomas + gonogo](https://i.ytimg.com/vi/ozWITnaJtf4/maxresdefault.jpg)](https://youtu.be/ozWITnaJtf4?t=2334)
+
+**Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal — the verdict, the confidence intervals, and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Result: 87.2% [82.5%, 90.8%] pass rate vs the 95% target → **AUTOMATE WITH REVIEW**; at confidence ≥ 0.91, 98.3% precision [95.1%, 99.4%] on 71% of cases with the rest routed to a human; calibration error 0.03. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
+
 ```
 ASSIST ONLY: Use it to draft, keep a human on every case.
 Pass rate 77.2% [71.6%, 82.0%]   (full 3,080-case split: 80.7% [79.3%, 82.1%])
