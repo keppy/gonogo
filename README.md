@@ -6,11 +6,50 @@ Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, sh
 
 This is deliberately **not** another eval framework — several good ones already exist. What none of them do is convert a score into a deployment decision you can defend at the sample sizes pilots actually run: forty to a hundred cases, not ten thousand.
 
+[![Fine-tuning an encoder and getting a go/no-go verdict — thomas + gonogo](https://i.ytimg.com/vi/ozWITnaJtf4/maxresdefault.jpg)](https://youtu.be/ozWITnaJtf4?t=2334)
+
+**Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal. The verdict, the intervals and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
+
+- 87.2% [82.5%, 90.8%] pass rate against a 95% target → **AUTOMATE WITH REVIEW**
+- at confidence ≥ 0.91: 98.3% precision [95.1%, 99.4%] on 71% of cases, the rest routed to a human
+- calibration error 0.03 after temperature scaling; +10.0 points over the TF-IDF baseline on the same 250 cases (p < 0.001)
+
+## Install
+
 ```bash
 pip install gonogo-eval
 ```
 
 Installs as `gonogo-eval` (the plain `gonogo` name on PyPI belongs to an unrelated project); imports as `gonogo`.
+
+## Try it
+
+```bash
+python examples/invoice_extraction.py
+```
+
+Sixty simulated invoices, an agent that's good but not perfect, no API key required. Real output:
+
+```
+# Score report: Extract fields from invoice
+
+**ASSIST ONLY**: Use it to draft, keep a human on every case.
+
+Pass rate 88.3% [77.8%, 94.2%] is well short of the 95% target and no
+confident subset reaches it; useful as a draft-generator, not as an
+unattended step.
+
+| Cases evaluated   | 60                   |
+| Passed            | 53                   |
+| Pass rate         | 88.3% [77.8%, 94.2%] |
+| Target            | 95%                  |
+| Calibration error | 0.11 (usable)        |
+```
+
+The calibration table in the full report is worth a look too: this agent is
+well calibrated above 0.8 (stated 0.92, actual 98%) and badly calibrated in
+the 0.6–0.8 band (stated 0.68, actual 33%). That's the kind of thing you want
+to know before you pick a threshold.
 
 ## The idea
 
@@ -78,10 +117,6 @@ It also checks whether your confidence means anything. Expected calibration erro
 
 On a pilot-sized sample of 250 cases against a 95% target:
 
-[![Fine-tuning an encoder and getting a go/no-go verdict — thomas + gonogo](https://i.ytimg.com/vi/ozWITnaJtf4/maxresdefault.jpg)](https://youtu.be/ozWITnaJtf4?t=2334)
-
-**Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal — the verdict, the confidence intervals, and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Result: 87.2% [82.5%, 90.8%] pass rate vs the 95% target → **AUTOMATE WITH REVIEW**; at confidence ≥ 0.91, 98.3% precision [95.1%, 99.4%] on 71% of cases with the rest routed to a human; calibration error 0.03. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
-
 ```
 ASSIST ONLY: Use it to draft, keep a human on every case.
 Pass rate 77.2% [71.6%, 82.0%]   (full 3,080-case split: 80.7% [79.3%, 82.1%])
@@ -148,7 +183,7 @@ ungrouped: 80.0% [67.0%, 88.8%] on 50 cases      INSUFFICIENT EVIDENCE
 grouped  :  0.0% [ 0.0%, 27.8%] on 10 groups     DO NOT AUTOMATE
 ```
 
-Same fifty cases. Put a `group` on each case (one per run, per document, per conversation) and ask for `group_rule="all"`: one trial per group, passing only if every case in it passed, interval over groups. The report keeps the case count as context and adds a row per recurring case id -- *`recovery`: 0 of 10 groups* -- which is usually the line you wanted.
+Same fifty cases. Put a `group` on each case (one per run, per document, per conversation) and ask for `group_rule="all"`: one trial per group, passing only if every case in it passed, interval over groups. The report keeps the case count as context and adds a row per recurring case id — *`recovery`: 0 of 10 groups* — which is usually the line you wanted.
 
 ```python
 cases = [Case(input=..., expected=..., id="recovery", group="run-3"), ...]
@@ -187,16 +222,20 @@ That's a 4.4-point improvement that would headline a slide — and the paired te
 
 `report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON, including per-case outcomes so runs can be paired and compared later.
 
-## Training with thomas
+## Works with
 
-[thomas](https://github.com/keppy/thomas) is the training side: fine-tune or RL
-a model, then hand the result to gonogo. The two share no code beyond thomas
-calling gonogo's public API. What they agree on (case ids, reward → `passed` /
-`score`, the confidence definition, the artifact layout, and which gonogo calls
-are load-bearing) is written down and versioned in thomas's
-[docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md).
-A change here to `Case`, `Prediction`, `evaluate`, `compare`, or the per-case
-fields of `Report.to_dict()` is a contract change, and the changelog says so.
+| | |
+| --- | --- |
+| [gonogo](https://github.com/keppy/gonogo) | Turns a score into a ship / don't-ship decision, with intervals |
+| [thomas](https://github.com/keppy/thomas) | Trains the model: encoder fine-tune on Modal, or RL on Tinker / Modal |
+| [hermes-plugin-gonogo](https://github.com/keppy/hermes-plugin-gonogo) | gonogo as Hermes agent tools |
+| [hermes-plugin-thomas](https://github.com/keppy/hermes-plugin-thomas) | thomas's encoder path as Hermes agent tools, GPU launches behind the approval gate |
+
+What thomas and gonogo agree on is written down and versioned in thomas's
+[docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md)
+(contract version 1): case ids, reward → `passed` / `score`, the confidence
+definition, the artifact a training run leaves on disk, eval splits, and the
+gonogo calls thomas depends on.
 
 ## Non-goals
 
@@ -209,35 +248,6 @@ This is a reference implementation, around 1,400 lines, readable in one sitting.
 - a public leaderboard
 
 If you want those, use one of the platforms. This does one thing.
-
-## Run the example
-
-```bash
-python examples/invoice_extraction.py
-```
-
-Sixty simulated invoices, an agent that's good but not perfect, no API key required. Real output:
-
-```
-# Score report: Extract fields from invoice
-
-**ASSIST ONLY**: Use it to draft, keep a human on every case.
-
-Pass rate 88.3% [77.8%, 94.2%] is well short of the 95% target and no
-confident subset reaches it; useful as a draft-generator, not as an
-unattended step.
-
-| Cases evaluated   | 60                   |
-| Passed            | 53                   |
-| Pass rate         | 88.3% [77.8%, 94.2%] |
-| Target            | 95%                  |
-| Calibration error | 0.11 (usable)        |
-```
-
-The calibration table in the full report is worth a look too: this agent is
-well calibrated above 0.8 (stated 0.92, actual 98%) and badly calibrated in
-the 0.6–0.8 band (stated 0.68, actual 33%). That's the kind of thing you want
-to know before you pick a threshold.
 
 ## License
 
