@@ -16,7 +16,7 @@ much can we automate, at what precision, with the rest going to a human."
 
 The artifact dir is whatever the thomas driver exported: an HF
 `save_pretrained` output plus `label2id.json`, `temperature.json` and
-`metrics.json` (see the cross-repo contract in the thomas repo's plan).
+`metrics.json` (thomas docs/CONTRACT.md §4, contract version 1).
 """
 
 from __future__ import annotations

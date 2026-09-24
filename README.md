@@ -187,6 +187,17 @@ That's a 4.4-point improvement that would headline a slide — and the paired te
 
 `report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, which you can hand to whoever signs off; `report.to_dict()` for JSON, including per-case outcomes so runs can be paired and compared later.
 
+## Training with thomas
+
+[thomas](https://github.com/keppy/thomas) is the training side: fine-tune or RL
+a model, then hand the result to gonogo. The two share no code beyond thomas
+calling gonogo's public API. What they agree on (case ids, reward → `passed` /
+`score`, the confidence definition, the artifact layout, and which gonogo calls
+are load-bearing) is written down and versioned in thomas's
+[docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md).
+A change here to `Case`, `Prediction`, `evaluate`, `compare`, or the per-case
+fields of `Report.to_dict()` is a contract change, and the changelog says so.
+
 ## Non-goals
 
 This is a reference implementation, around 1,400 lines, readable in one sitting. It will not grow into:
