@@ -66,7 +66,7 @@ class TestMcNemar:
         a = report_from({"1": True, "2": False})
         c = compare(a, a)
         assert c.discordant == 0 and c.p_value == 1.0 and not c.significant
-        assert c.low == 0.0 and c.high == 0.0
+        assert c.low < 0.0 < c.high  # no disagreements is not a zero-width CI
 
     def test_lopsided_disagreement_is_significant(self):
         # B fixes 15 cases A failed and breaks none.

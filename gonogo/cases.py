@@ -104,8 +104,8 @@ class CaseResult:
 
     @property
     def confidence(self) -> float:
-        # A case with no stated confidence is treated as fully confident, which
-        # keeps it in every coverage bucket rather than silently excusing it.
+        # Only an entirely confidence-free set may use this fallback. Mixed
+        # missing/present confidence is rejected by the evaluation/report paths.
         return 1.0 if self.prediction.confidence is None else self.prediction.confidence
 
 

@@ -5,10 +5,8 @@ good but not perfect and reports a confidence, and the resulting decision.
 
     python examples/invoice_extraction.py
 
-The point of the example is the *shape of the answer*. The agent here gets about
-88% of cases right, which looks shippable until you see the interval -- and then
-you see that abstaining on its low-confidence cases buys you a defensible
-operating point instead.
+The point of the example is the *shape of the answer*. The agent gets 56 of 60
+cases right, but the interval and every candidate threshold miss the 95% target.
 """
 
 from __future__ import annotations

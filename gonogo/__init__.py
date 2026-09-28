@@ -33,7 +33,7 @@ from .stats import (
     wilson,
 )
 
-__version__ = "0.2.0.post1"
+__version__ = "0.3.0"
 
 __all__ = [
     "Case", "CaseResult", "Prediction",

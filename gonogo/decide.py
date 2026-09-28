@@ -55,7 +55,9 @@ class Decision:
 
     @property
     def can_automate(self) -> bool:
-        return self.verdict in (Verdict.AUTOMATE, Verdict.AUTOMATE_WITH_REVIEW)
+        # A review threshold selected and measured on the same cases is a
+        # candidate, not permission to deploy. Validate it on fresh holdout.
+        return self.verdict is Verdict.AUTOMATE
 
 
 def decide(
@@ -136,9 +138,10 @@ def decide(
             )
             return Decision(
                 verdict=Verdict.AUTOMATE_WITH_REVIEW,
-                reason=(f"overall pass rate {rate} misses the {target:.0%} target, but "
-                        f"abstaining below confidence {point.threshold:.2f} reaches "
-                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of {unit}"),
+                reason=(f"overall pass rate {rate} misses the {target:.0%} target; "
+                        f"a candidate threshold at confidence {point.threshold:.2f} reaches "
+                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of {unit} "
+                        f"on this selection set, but needs a fresh holdout before deployment"),
                 pass_rate=rate, target=target, operating_point=point,
                 calibration_error=ece, notes=notes,
             )
@@ -165,7 +168,7 @@ def decide(
     if rate.point >= ASSIST_FLOOR:
         return Decision(
             verdict=Verdict.ASSIST_ONLY,
-            reason=(f"pass rate {rate} is well short of the {target:.0%} target and no "
+            reason=(f"pass rate {rate} is below the {target:.0%} target and no "
                     f"confident subset reaches it; useful as a draft-generator, not as "
                     f"an unattended step"),
             pass_rate=rate, target=target, calibration_error=ece, notes=notes,

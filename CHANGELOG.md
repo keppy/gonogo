@@ -4,6 +4,58 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-28
+
+A review pass over the decision semantics. The theme: a threshold selected on
+the cases it is scored on is a candidate, not a result, and the library now
+says so everywhere it used to imply otherwise.
+
+### Changed
+
+- **`Decision.can_automate` is true only for `AUTOMATE`.** `AUTOMATE WITH
+  REVIEW` names a candidate operating point chosen on the same cases it is
+  measured on; validating it needs a fresh holdout, so the property no longer
+  vouches for it. The verdict's reason, the report's operating-point section
+  and the HTML rendering say "candidate ... fresh holdout required".
+  `to_dict()` now includes `can_automate`.
+- **`compare()` reports a non-degenerate paired interval.** The Wald interval
+  on the paired difference collapsed to `[0, 0]` whenever the two arms never
+  disagreed, which read as "identical" on ten shared cases. The interval is
+  now built from simultaneous Wilson bounds on the two discordant
+  probabilities (Bonferroni-split level); with no disagreements on n=10 it
+  reads `[-33.4%, +33.4%]`.
+- **`compare()` pairs grouped runs by group.** When both reports are grouped
+  the trial unit is the group (all cases pass), membership must match across
+  runs, and `Comparison.unit` / its text say `groups`. Mixing a grouped and an
+  ungrouped report raises.
+- **Grouped reports draw the curve and calibration table over group trials**
+  (`min` confidence across the group, all-pass), at the decision's level,
+  labelled by unit. Previously the curve mixed per-case rows into a
+  group-level verdict.
+- **`validate_judge(label_source="structural")` never returns `usable=True`.**
+  Structural labels can catch rubber-stamping but cannot establish semantic
+  correctness; the reason now asks for independent human labels. A structural
+  set with no failing cases is rejected outright (no rubber-stamping test was
+  possible).
+- **Mixed confidence is rejected.** A run where some answered cases state a
+  confidence and others do not raises in `evaluate()` and `Report()`, instead
+  of silently treating the missing ones as 1.0. All-missing is still allowed
+  (no curve). Errored predictions in a confidence-bearing run are assigned 1.0
+  so they stay in every coverage bucket.
+- `judge()` reads the score from the *start* of the reply, per its own
+  protocol, so a rubric number later in a malformed reply is not taken as the
+  score.
+- `numeric()` and `fields()` reject a non-finite or negative tolerance at
+  construction and fail non-finite operands instead of comparing them.
+- `to_dict()` replaces non-finite floats with `null` so saved reports parse
+  under strict JSON decoders.
+- `ASSIST ONLY` reason reads "is below the target" rather than "well short".
+
+### Removed
+
+- The README demo GIF and its cast/generator; the README shows the example's
+  real output as text instead.
+
 ## [0.2.0.post1] - 2026-09-15
 
 Documentation only; no code changes.

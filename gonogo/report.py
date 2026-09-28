@@ -7,6 +7,7 @@ stated in the first three lines.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from .cases import CaseResult
@@ -15,7 +16,7 @@ from .stats import OperatingPoint, reliability_table, risk_coverage
 
 _MARK = {
     Verdict.AUTOMATE: "Ship it.",
-    Verdict.AUTOMATE_WITH_REVIEW: "Ship it behind a confidence threshold.",
+    Verdict.AUTOMATE_WITH_REVIEW: "Candidate review threshold; validate on fresh holdout before shipping.",
     Verdict.ASSIST_ONLY: "Use it to draft, keep a human on every case.",
     Verdict.DO_NOT_AUTOMATE: "Don't automate this.",
     Verdict.INSUFFICIENT_EVIDENCE: "Not enough cases to decide yet.",
@@ -28,6 +29,12 @@ class Report:
     results: list[CaseResult]
     decision: Decision
     metadata: dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        answered = [r for r in self.results if not r.prediction.error and not r.prediction.abstained]
+        if any(r.prediction.confidence is None for r in answered) and any(
+                r.prediction.confidence is not None for r in answered):
+            raise ValueError("mixed missing and present confidence; supply confidence for every answered case or none")
 
     @property
     def n(self) -> int:
@@ -81,8 +88,14 @@ class Report:
         worst = sorted((r for r in self.results if not r.passed), key=lambda r: r.score)
         return worst if limit is None else worst[:limit]
 
+    def _trial_pairs(self) -> list[tuple[float, bool]]:
+        if self.grouped:
+            return [(min(r.confidence for r in rs), all(r.passed for r in rs))
+                    for rs in self.groups().values()]
+        return [(r.confidence, r.passed) for r in self.results]
+
     def curve(self) -> list[OperatingPoint]:
-        return risk_coverage([(r.confidence, r.passed) for r in self.results])
+        return risk_coverage(self._trial_pairs(), level=self.decision.pass_rate.level)
 
     def summary(self) -> str:
         """One line, for a terminal or a commit message."""
@@ -94,7 +107,7 @@ class Report:
 
     def markdown(self, show_failures: int = 5) -> str:
         d = self.decision
-        pairs = [(r.confidence, r.passed) for r in self.results]
+        pairs = self._trial_pairs()
         out: list[str] = []
 
         out.append(f"# Score report: {self.task}")
@@ -145,23 +158,23 @@ class Report:
 
         if d.operating_point:
             p = d.operating_point
-            out.append("## Recommended operating point")
+            out.append("## Candidate operating point (fresh holdout required)")
             out.append("")
-            out.append(f"Let the agent answer only when its confidence is at least "
-                       f"**{p.threshold:.2f}**, and route the rest to a person.")
+            out.append(f"On fresh cases, test answering only at confidence "
+                       f"**{p.threshold:.2f}** or above, routing the rest to a person.")
             out.append("")
             out.append("| | |")
             out.append("| --- | --- |")
-            out.append(f"| Cases handled automatically | {p.n_covered} of {self.n} ({p.coverage:.0%}) |")
+            out.append(f"| {d.unit.capitalize()} selected for automation | {p.n_covered} of {d.pass_rate.n} ({p.coverage:.0%}) |")
             out.append(f"| Precision on those | {p.precision} |")
-            out.append(f"| Cases sent to review | {p.n_deferred} |")
+            out.append(f"| {d.unit.capitalize()} sent to review | {p.n_deferred} |")
             out.append("")
 
         curve = self.curve()
         if len(curve) > 1:
             out.append("## Coverage vs precision")
             out.append("")
-            out.append("| Confidence floor | Handled | Precision | To review |")
+            out.append(f"| Confidence floor | {d.unit.capitalize()} selected | Precision | {d.unit.capitalize()} to review |")
             out.append("| --- | --- | --- | --- |")
             for p in _thin(curve, 8):
                 out.append(f"| {p.threshold:.2f} | {p.coverage:.0%} | {p.precision} | {p.n_deferred} |")
@@ -171,7 +184,7 @@ class Report:
         if len(table) > 1:
             out.append("## Calibration")
             out.append("")
-            out.append("| Stated confidence | Cases | Mean confidence | Actual accuracy |")
+            out.append(f"| Stated confidence | {d.unit.capitalize()} | Mean confidence | Actual accuracy |")
             out.append("| --- | --- | --- | --- |")
             for row in table:
                 out.append(f"| {row['range']} | {row['n']} | {row['mean_confidence']:.2f} | "
@@ -263,10 +276,10 @@ class Report:
         if d.operating_point:
             p = d.operating_point
             rows.append('<div class="gng-op">')
-            rows.append('<p class="gng-op-title">Recommended operating point</p>')
-            rows.append(f'<p>Answer only above confidence <b>{p.threshold:.2f}</b>; '
-                        f'route the rest to a person.</p>')
-            rows.append(f'<p class="gng-op-nums">{p.n_covered} of {self.n} handled '
+            rows.append('<p class="gng-op-title">Candidate operating point (fresh holdout required)</p>')
+            rows.append(f'<p>On fresh cases, test answering at confidence '
+                        f'<b>{p.threshold:.2f}</b> or above; route the rest to a person.</p>')
+            rows.append(f'<p class="gng-op-nums">{p.n_covered} of {d.pass_rate.n} {d.unit} selected '
                         f'({p.coverage:.0%}) at {p.precision} precision, '
                         f'{p.n_deferred} to review.</p>')
             rows.append('</div>')
@@ -274,8 +287,8 @@ class Report:
         curve = self.curve()
         if len(curve) > 1:
             rows.append('<table class="gng-table"><caption>Coverage vs precision</caption><thead><tr>'
-                        '<th scope="col">Confidence floor</th><th scope="col">Handled</th>'
-                        '<th scope="col">Precision</th><th scope="col">To review</th>'
+                        f'<th scope="col">Confidence floor</th><th scope="col">{e(d.unit.capitalize())} selected</th>'
+                        f'<th scope="col">Precision</th><th scope="col">{e(d.unit.capitalize())} to review</th>'
                         '</tr></thead><tbody>')
             for p in _thin(curve, 8):
                 meets = p.precision.low >= d.target
@@ -289,10 +302,10 @@ class Report:
                     f'<td>{p.n_deferred}</td></tr>')
             rows.append('</tbody></table>')
 
-        table = reliability_table([(r.confidence, r.passed) for r in self.results])
+        table = reliability_table(self._trial_pairs())
         if len(table) > 1:
             rows.append('<table class="gng-table"><caption>Calibration</caption><thead><tr>'
-                        '<th scope="col">Stated confidence</th><th scope="col">Cases</th>'
+                        f'<th scope="col">Stated confidence</th><th scope="col">{e(d.unit.capitalize())}</th>'
                         '<th scope="col">Mean confidence</th><th scope="col">Actual accuracy</th>'
                         '</tr></thead><tbody>')
             for row in table:
@@ -331,9 +344,10 @@ class Report:
 
     def to_dict(self) -> dict:
         d = self.decision
-        return {
+        return _json_safe({
             "task": self.task,
             "verdict": d.verdict.value,
+            "can_automate": d.can_automate,
             "reason": d.reason,
             "n": self.n,
             "n_passed": self.n_passed,
@@ -370,7 +384,17 @@ class Report:
                 }
                 for r in self.results
             ],
-        }
+        })
+
+def _json_safe(value):
+    """Keep saved report payloads valid under strict JSON encoders."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
 
 
 def _esc(text: str) -> str:

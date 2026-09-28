@@ -68,15 +68,14 @@ class TestStructuralLabels:
         assert v.judge_lenient == 5
         assert "rubber-stamping" in v.reason
 
-    def test_stricter_judge_passes_the_structural_gate_without_claiming_validation(self):
+    def test_structural_failures_only_rule_out_rubber_stamping(self):
         judge = [True] * 10 + [False] * 10
         ref = [True] * 15 + [False] * 5
         v = validate_judge(judge, ref, label_source="structural")
-        assert v.usable
+        assert not v.usable
         assert v.judge_lenient == 0 and v.judge_strict == 5
-        assert "not the gate" in v.reason
-        assert "does not validate the judge" in v.reason
-        assert "human" not in words(v)
+        assert "cannot validate semantic" in v.reason
+        assert "independent human" in v.reason
 
 
 class TestDeprecatedAlias:

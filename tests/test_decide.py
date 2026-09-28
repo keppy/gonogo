@@ -27,7 +27,7 @@ class TestVerdicts:
         assert d.verdict is Verdict.AUTOMATE_WITH_REVIEW
         assert d.operating_point is not None
         assert d.operating_point.n_deferred == 20
-        assert d.can_automate
+        assert not d.can_automate  # same-set threshold needs fresh holdout
 
     def test_assist_only_when_mediocre_and_unsalvageable(self):
         results = [(0.5, True)] * 35 + [(0.5, False)] * 25

@@ -86,6 +86,18 @@ def evaluate(
             continue
         results.append(CaseResult(case, pred, passed=passed, score=value, detail=detail))
 
+    # Compare only agent-supplied scores. Abstentions synthesize 0 and crashes
+    # may synthesize 1 for thresholding; neither turns a confidence-free run
+    # into a partially scored one.
+    answered = [r for r in results if not r.prediction.error and not r.prediction.abstained]
+    supplied = any(r.prediction.confidence is not None for r in answered)
+    missing = any(r.prediction.confidence is None for r in answered)
+    if supplied and missing:
+        raise ValueError("mixed missing and present confidence; supply confidence for every answered case or none")
+    if supplied:
+        for r in results:
+            if r.prediction.error and r.prediction.confidence is None:
+                r.prediction.confidence = 1.0
     metadata = {"scorer": getattr(scorer, "__qualname__", repr(scorer)), "group_rule": group_rule}
 
     if group_rule == "none":

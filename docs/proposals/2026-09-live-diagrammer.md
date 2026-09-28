@@ -68,9 +68,8 @@ def validate_judge(
 
 Behaviour:
 
-- `reason` and every rendering (`markdown()`, `html()`, `to_dict()`) name the
-  source: *"kappa 0.42 clears 0.60 against labels from an independent model
-  (nemotron-3-super-120b via OpenRouter)"*.
+- `reason` and every rendering name the source; a kappa of 0.42 does **not**
+  clear the 0.60 gate, including against labels from an independent model.
 - The word **human** appears in output only when `label_source == "human"`.
   This is the whole point: make the honest sentence the default sentence.
 - `label_source="structural"` gets one extra line of interpretation, because

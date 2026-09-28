@@ -43,14 +43,16 @@ def exact() -> Scorer:
 
 def numeric(tolerance: float = 0.01, relative: bool = True) -> Scorer:
     """Numeric match within a tolerance -- for totals, counts, amounts."""
+    if isinstance(tolerance, bool) or not math.isfinite(tolerance) or tolerance < 0:
+        raise ValueError("tolerance must be a finite nonnegative number")
 
     def score(output: Any, expected: Any) -> Score:
         try:
             got, want = float(output), float(expected)
         except (TypeError, ValueError):
             return False, 0.0, f"not numeric: {output!r}"
-        if math.isnan(got) or math.isnan(want):
-            return False, 0.0, "NaN value"
+        if not math.isfinite(got) or not math.isfinite(want):
+            return False, 0.0, "non-finite numeric value"
         limit = abs(want) * tolerance if relative else tolerance
         delta = abs(got - want)
         ok = delta <= limit
@@ -66,6 +68,8 @@ def fields(required: list[str] | None = None, tolerance: float = 0.0) -> Scorer:
     score to be recorded while still failing the case, which keeps the pass rate
     honest but preserves the signal about how close it got.
     """
+    if isinstance(tolerance, bool) or not math.isfinite(tolerance) or tolerance < 0:
+        raise ValueError("tolerance must be a finite nonnegative number")
 
     def score(output: Any, expected: Any) -> Score:
         if not isinstance(output, dict) or not isinstance(expected, dict):
@@ -83,7 +87,8 @@ def fields(required: list[str] | None = None, tolerance: float = 0.0) -> Scorer:
             elif _is_number(want) and _is_number(got):
                 # Numbers compare numerically even at tolerance zero, so an
                 # expected 1 is not failed against an output of 1.0.
-                if abs(float(got) - float(want)) > abs(float(want)) * tolerance:
+                if (not math.isfinite(float(got)) or not math.isfinite(float(want))
+                        or abs(float(got) - float(want)) > abs(float(want)) * tolerance):
                     wrong.append(k)
             elif _normalize(str(got)) != _normalize(str(want)):
                 wrong.append(k)
@@ -139,7 +144,9 @@ def judge(
             f"Reply with the number first, then one sentence of justification."
         )
         reply = complete(prompt)
-        match = re.search(r"\b([1-9][0-9]?)\b", reply or "")
+        # The protocol says number *first*. Do not treat a later rubric/example
+        # number as the judge's score when the response is malformed.
+        match = re.match(r"\s*([1-9][0-9]?)(?![\d.])\b", reply or "")
         if not match:
             return False, 0.0, f"judge returned no score: {(reply or '')[:80]!r}"
         value = int(match.group(1))
@@ -221,10 +228,10 @@ def validate_judge(
     whenever one class dominates: a judge that passes everything scores 90%
     agreement on a set that is 90% passes, while carrying no information at all.
 
-    Structural labels are the exception. They can only fail cases that are
-    visibly broken, so a stricter judge is expected and kappa against them is
-    bounded. There the gate is leniency alone: a judge that passes a case the
-    structural check failed is rubber-stamping, whatever its kappa.
+    Structural labels are one-sided: they can catch a judge passing visibly
+    broken cases but cannot establish semantic correctness or judge usability.
+    They never set ``usable=True``; validate with independent human labels
+    before a judge influences a training or shipping decision.
     """
     if human_passes is not None:
         if reference_passes is not None:
@@ -258,14 +265,16 @@ def validate_judge(
         return result(False, f"only {n} labelled cases; label at least {min_n} before trusting the judge")
 
     if label_source == "structural":
+        if not any(not h for h in reference_passes):
+            return result(False, "structural checks found no failing cases; no rubber-stamping test was possible")
         if lenient:
             return result(False, (
                 f"the judge passed {lenient} case{'s' if lenient != 1 else ''} that a structural "
                 f"check failed; that is rubber-stamping, and no kappa excuses it"))
-        return result(True, (
-            f"the judge passed nothing the structural checks failed; kappa {stats['kappa']:.2f} "
-            f"is not the gate here, since structural labels cannot see meaning and a stricter "
-            f"judge is expected -- this rules out rubber-stamping, it does not validate the judge"))
+        return result(False, (
+            "no rubber-stamping detected against structural failures, but structural labels "
+            "cannot validate semantic judgments; add independent human positive and negative "
+            "references before calling this judge usable"))
 
     kappa = stats["kappa"]
     if kappa != kappa:  # NaN

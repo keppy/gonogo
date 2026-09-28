@@ -2,7 +2,7 @@
 
 **47 out of 50 is not 94%.** It lands somewhere between 84% and 98%, so if you were aiming at 90%, you can't yet say you got there.
 
-Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, ship it behind a human-review threshold, or walk away. When the honest answer is "you don't have enough cases to know," it says that instead of guessing.
+Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, test a candidate human-review threshold on fresh cases, or walk away. When the honest answer is "you don't have enough cases to know," it says that instead of guessing.
 
 This is deliberately **not** another eval framework — several good ones already exist. What none of them do is convert a score into a deployment decision you can defend at the sample sizes pilots actually run: forty to a hundred cases, not ten thousand.
 
@@ -10,8 +10,8 @@ This is deliberately **not** another eval framework — several good ones alread
 
 **Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal. The verdict, the intervals and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
 
-- 87.2% [82.5%, 90.8%] pass rate against a 95% target → **AUTOMATE WITH REVIEW**
-- at confidence ≥ 0.91: 98.3% precision [95.1%, 99.4%] on 71% of cases, the rest routed to a human
+- 87.2% [82.5%, 90.8%] pass rate against a 95% target → **AUTOMATE WITH REVIEW** candidate (fresh holdout required before deployment)
+- at confidence ≥ 0.91: 98.3% precision [95.2%, 99.4%] on 71% of cases, the rest routed to a human
 - calibration error 0.03 after temperature scaling; +10.0 points over the TF-IDF baseline on the same 250 cases (p < 0.001)
 
 ## Install
@@ -29,61 +29,58 @@ python examples/invoice_extraction.py
 ```
 
 Sixty simulated invoices, an agent that's good but not perfect, no API key
-required. The example is deterministic (stable per-case seeds), so your run
-prints exactly this:
-
-![gonogo: the verdict moment — question, command, ASSIST ONLY](docs/demo.gif)
+required. The example is deterministic (stable per-case seeds). Excerpt from its report:
 
 ```
 # Score report: Extract fields from invoice
 
 **ASSIST ONLY**: Use it to draft, keep a human on every case.
 
-Pass rate 93.3% [84.1%, 97.4%] is well short of the 95% target and no
-confident subset reaches it; useful as a draft-generator, not as an
-unattended step.
+Pass rate 93.3% [84.1%, 97.4%] is below the 95% target and no confident subset reaches it; useful as a draft-generator, not as an unattended step.
 
-| Cases evaluated   | 60                      |
-| Passed            | 56                      |
-| Pass rate         | 93.3% [84.1%, 97.4%]    |
-| Target            | 95%                     |
-| Calibration error | 0.13 (well calibrated)  |
+| | |
+| --- | --- |
+| Cases evaluated | 60 |
+| Passed | 56 |
+| Pass rate | 93.3% [84.1%, 97.4%] |
+| Target | 95% |
+| Calibration error | 0.13 (well calibrated) |
 ```
 
 The calibration table in the full report is worth a look too: this agent is
-well calibrated above 0.8 (stated 0.92, actual 96%) and badly calibrated in
-the 0.6–0.8 band (stated 0.65, actual 75%). That's the kind of thing you want
-to know before you pick a threshold.
+well calibrated above 0.8 (stated 0.92, actual 96%) and has a gap in
+the 0.6–0.8 band (stated 0.65, actual 75%, but only four cases). Those bins
+are descriptive, not evidence to set a threshold on their own.
 
-## One loop, four repos
+## One loop, five repos
 
 `gonogo` is one tile of a small ecosystem that takes a task from *which
 model?* to *ship it or not*:
 
 ```
-your task ──► evalroute ─ the right (model, effort) arm for the task,
-                │         by measured cost per verified success
+your task ──► evalroute ─ choose a (model, effort) arm;
+                │         measured where available, priors marked
                 ▼
-your cases ──► thomas ── a calibrated model trained against your bar;
-                │         gonogo scores the baseline and the after
+your cases ──► thomas ── train on labels (encoder) or score_text (RL);
+                │         evaluate on untouched cases with gonogo
                 ▼
-              gonogo ── ship it, ship it behind a threshold, or walk away
+              gonogo ── ship it, test a threshold on fresh cases, or walk away
 ```
 
 - **[gonogo](https://github.com/keppy/gonogo)** (this repo) — the decision
   layer. Any agent, your real cases, a target; the verdict comes with the
   interval behind it.
-- **[thomas](https://github.com/keppy/thomas)** — the training harness. When
-  the verdict is *not yet*: one case set, one `score_text`, a baseline card,
-  a training run (encoder SFT on Modal, or RL), the same bar at both ends.
+- **[thomas](https://github.com/keppy/thomas)** — the training harness. RL
+  shares `score_text` across training and held-out evaluation; encoder SFT
+  instead learns labels and needs a separate held-out evaluation.
 - **[evalroute](https://github.com/keppy/hermes-plugin-evalroute)** — the
   routing layer. Before any of it starts: classify the task, hand back the
-  arm with measured cost-per-verified-success behind it, rate the outcome so
-  the table keeps learning.
+  arm with measured costs where available and priors otherwise; collect
+  ratings to prioritize the next controlled batch.
 - **The Hermes plugins** — the same three, inside your agent's session:
-  [gonogo](https://github.com/keppy/hermes-plugin-gonogo) where the number
-  happened, [thomas](https://github.com/keppy/hermes-plugin-thomas) with GPU
-  launches behind the approval gate, `/route` before the first turn.
+  [gonogo](https://github.com/keppy/hermes-plugin-gonogo) for decisions,
+  [thomas](https://github.com/keppy/hermes-plugin-thomas) with a human approval
+  hook on its training tool, and `/route` before the first turn.
 
 ## The idea
 
@@ -115,12 +112,12 @@ Your agent is any callable. No base class, no decorator, no framework to adopt. 
 
 ## What it tells you
 
-Five verdicts, and only two of them mean ship:
+Five verdicts; a review threshold selected on the measured set is not a ship authorization:
 
 | Verdict | Meaning |
 | --- | --- |
 | `AUTOMATE` | The pass rate's lower bound clears your target. Ship it. |
-| `AUTOMATE WITH REVIEW` | Not good enough overall, but a confident subset is. Ship behind a threshold, route the rest to a person. |
+| `AUTOMATE WITH REVIEW` | Candidate threshold found on this set, not permission to deploy. Test the fixed threshold on a fresh holdout before routing cases by it. `can_automate` remains false; holdout signoff is separate. |
 | `ASSIST ONLY` | Useful as a draft generator, not as an unattended step. |
 | `DO NOT AUTOMATE` | Not a fit for this workflow as scoped. |
 | `INSUFFICIENT EVIDENCE` | The estimate looks good but your sample can't support the claim. Here's roughly how many cases you'd need. |
@@ -129,7 +126,7 @@ That last one is the whole reason this exists. It's the verdict an honest consul
 
 ## Why confidence matters
 
-If your agent reports a per-case confidence, `gonogo` finds the abstention threshold that maximizes how much you can automate while keeping precision's *lower bound* above your target, and reports the whole curve so you can see the tradeoff:
+If your agent reports per-case confidence for every case, `gonogo` finds a candidate abstention threshold that maximizes coverage while its measured precision's *lower bound* clears your target, and reports the whole curve. Because it selected that threshold on this set, re-measure a fixed cut point on fresh cases before deployment:
 
 | Confidence floor | Handled | Precision | To review |
 | --- | --- | --- | --- |
@@ -143,7 +140,7 @@ That last row is why it uses the lower bound and not the point estimate. 100% pr
 
 Note what the table above actually proves: against a 95% target, *no* threshold works here. The 0.85 row looks great at 98.0% until you read its lower bound of 89.3%. So the verdict is `ASSIST ONLY`, not a ship — which is the answer you want before you wire it into production, not after.
 
-It also checks whether your confidence means anything. Expected calibration error above 0.15 and the harness flags the confidence scale as not-a-probability — but it keeps the operating point, because precision at a cut point is measured directly from held-out results and doesn't depend on the scale meaning anything. Calibration and discrimination are different properties; see the next section for a model that fails one and aces the other.
+It also checks whether your confidence means anything. Expected calibration error above 0.15 flags the confidence scale as not-a-probability — but it keeps the candidate operating point, because precision at a cut point is measured directly and doesn't depend on the scale meaning anything. That same-set estimate is optimistic until checked on a fresh holdout. Calibration and discrimination are different properties; see the next section for a model that fails one and aces the other.
 
 ## A real measurement
 
@@ -201,12 +198,11 @@ This is why the gate is 0.60 rather than "90% agreement." The threshold is conve
 ```python
 validate_judge(judge_labels, model_labels, label_source="model",
                label_source_note="nemotron-3-super-120b via OpenRouter")
-# judge USABLE: 77% agreement, kappa 0.42 on 20 cases labelled by an independent
-# model (nemotron-3-super-120b via OpenRouter) (kappa 0.42 clears 0.60 against
-# model labels; this is agreement with model labels, not human validation)
 ```
 
-`"human"` is the default and the only source that earns the word *human* anywhere in the output. `"structural"` is for deterministic checks (duplicates, dangling references, malformed output): they can catch a judge waving broken cases through, but cannot see meaning, so there the gate is leniency alone and kappa is reported without being the verdict. The old keyword still works and warns.
+A kappa of 0.42 would be **NOT USABLE** at the default 0.60 gate, even against model labels.
+
+`"human"` is the default and the only source that earns the word *human* anywhere in the output. `"structural"` is for deterministic checks (duplicates, dangling references, malformed output): they can catch a judge waving broken cases through, but cannot establish semantic correctness. Structural-only validation never marks a judge usable; collect independent human positives and negatives before using it to score training or shipping. The old keyword still works and warns.
 
 ## Correlated cases
 
@@ -230,7 +226,7 @@ Scorers may also take the case: `def scorer(output, expected, case)` is called w
 
 ## Comparing two agents
 
-Swapping in a new model and watching the pass rate rise is the most common way a team convinces itself of an improvement that isn't there. Two overlapping intervals tell you very little — but when both agents ran the *same* cases, the results are paired, and the paired test is strictly more powerful. `compare()` runs McNemar's test on the shared case ids: cases both agents got right carry no information about which is better, so they're excluded rather than padding the denominator.
+Swapping in a new model and watching the pass rate rise is the most common way a team convinces itself of an improvement that isn't there. Two overlapping intervals tell you very little — but when both agents ran the *same* cases, the results are paired. `compare()` runs McNemar's test on the shared case ids (or groups, when grouped): agreements carry no information for that test. The difference interval uses conservative simultaneous Wilson bounds on the two discordant rates and does not collapse at the boundaries. Grouped runs must pair the same case membership within each shared group.
 
 ```python
 from gonogo import compare
@@ -238,13 +234,13 @@ from gonogo import compare
 print(compare(baseline_report, claude_report).summary())
 ```
 
-Real output, a Claude agent vs the TF-IDF baseline on the same 250 Banking77 cases (`examples/banking77_claude_agent.py`):
+A Claude agent vs the TF-IDF baseline on the same 250 Banking77 cases (`examples/banking77_claude_agent.py`); the difference interval below is recomputed from the paired counts with the current Wilson method:
 
 ```
 Shared cases        250
 Agent A pass rate   77.2%
 Agent B pass rate   81.6%
-Difference          +4.4% [-0.8%, +9.6%] at 95%
+Difference          +4.4% [-3.8%, +12.4%] at 95%
 Disagreements       45 (17 only-A, 28 only-B)
 McNemar p           0.1352
 Verdict             no detectable difference; the sample cannot separate them
@@ -259,7 +255,7 @@ That's a 4.4-point improvement that would headline a slide — and the paired te
 ## Works with
 
 The ecosystem picture and all four links live at the top of this README
-("One loop, four repos"). What thomas and gonogo agree on is written down
+("One loop, five repos"). What thomas and gonogo agree on is written down
 and versioned in thomas's
 [docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md)
 (contract version 1): case ids, reward → `passed` / `score`, the confidence
