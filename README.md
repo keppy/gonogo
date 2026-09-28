@@ -28,28 +28,62 @@ Installs as `gonogo-eval` (the plain `gonogo` name on PyPI belongs to an unrelat
 python examples/invoice_extraction.py
 ```
 
-Sixty simulated invoices, an agent that's good but not perfect, no API key required. Real output:
+Sixty simulated invoices, an agent that's good but not perfect, no API key
+required. The example is deterministic (stable per-case seeds), so your run
+prints exactly this:
+
+![gonogo: the verdict moment — question, command, ASSIST ONLY](docs/demo.gif)
 
 ```
 # Score report: Extract fields from invoice
 
 **ASSIST ONLY**: Use it to draft, keep a human on every case.
 
-Pass rate 88.3% [77.8%, 94.2%] is well short of the 95% target and no
+Pass rate 93.3% [84.1%, 97.4%] is well short of the 95% target and no
 confident subset reaches it; useful as a draft-generator, not as an
 unattended step.
 
-| Cases evaluated   | 60                   |
-| Passed            | 53                   |
-| Pass rate         | 88.3% [77.8%, 94.2%] |
-| Target            | 95%                  |
-| Calibration error | 0.11 (usable)        |
+| Cases evaluated   | 60                      |
+| Passed            | 56                      |
+| Pass rate         | 93.3% [84.1%, 97.4%]    |
+| Target            | 95%                     |
+| Calibration error | 0.13 (well calibrated)  |
 ```
 
 The calibration table in the full report is worth a look too: this agent is
-well calibrated above 0.8 (stated 0.92, actual 98%) and badly calibrated in
-the 0.6–0.8 band (stated 0.68, actual 33%). That's the kind of thing you want
+well calibrated above 0.8 (stated 0.92, actual 96%) and badly calibrated in
+the 0.6–0.8 band (stated 0.65, actual 75%). That's the kind of thing you want
 to know before you pick a threshold.
+
+## One loop, four repos
+
+`gonogo` is one tile of a small ecosystem that takes a task from *which
+model?* to *ship it or not*:
+
+```
+your task ──► evalroute ─ the right (model, effort) arm for the task,
+                │         by measured cost per verified success
+                ▼
+your cases ──► thomas ── a calibrated model trained against your bar;
+                │         gonogo scores the baseline and the after
+                ▼
+              gonogo ── ship it, ship it behind a threshold, or walk away
+```
+
+- **[gonogo](https://github.com/keppy/gonogo)** (this repo) — the decision
+  layer. Any agent, your real cases, a target; the verdict comes with the
+  interval behind it.
+- **[thomas](https://github.com/keppy/thomas)** — the training harness. When
+  the verdict is *not yet*: one case set, one `score_text`, a baseline card,
+  a training run (encoder SFT on Modal, or RL), the same bar at both ends.
+- **[evalroute](https://github.com/keppy/hermes-plugin-evalroute)** — the
+  routing layer. Before any of it starts: classify the task, hand back the
+  arm with measured cost-per-verified-success behind it, rate the outcome so
+  the table keeps learning.
+- **The Hermes plugins** — the same three, inside your agent's session:
+  [gonogo](https://github.com/keppy/hermes-plugin-gonogo) where the number
+  happened, [thomas](https://github.com/keppy/hermes-plugin-thomas) with GPU
+  launches behind the approval gate, `/route` before the first turn.
 
 ## The idea
 
@@ -224,14 +258,9 @@ That's a 4.4-point improvement that would headline a slide — and the paired te
 
 ## Works with
 
-| | |
-| --- | --- |
-| [gonogo](https://github.com/keppy/gonogo) | Turns a score into a ship / don't-ship decision, with intervals |
-| [thomas](https://github.com/keppy/thomas) | Trains the model: encoder fine-tune on Modal, or RL on Tinker / Modal |
-| [hermes-plugin-gonogo](https://github.com/keppy/hermes-plugin-gonogo) | gonogo as Hermes agent tools |
-| [hermes-plugin-thomas](https://github.com/keppy/hermes-plugin-thomas) | thomas's encoder path as Hermes agent tools, GPU launches behind the approval gate |
-
-What thomas and gonogo agree on is written down and versioned in thomas's
+The ecosystem picture and all four links live at the top of this README
+("One loop, four repos"). What thomas and gonogo agree on is written down
+and versioned in thomas's
 [docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md)
 (contract version 1): case ids, reward → `passed` / `score`, the confidence
 definition, the artifact a training run leaves on disk, eval splits, and the
