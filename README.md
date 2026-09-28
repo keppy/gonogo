@@ -28,33 +28,27 @@ Installs as `gonogo-eval` (the plain `gonogo` name on PyPI belongs to an unrelat
 python examples/invoice_extraction.py
 ```
 
-Sixty simulated invoices, an agent that's good but not perfect, no API key
-required. Deterministic (stable per-case seeds), so your run matches this
-capture:
-
-![gonogo: the invoice example, end to end](docs/demo.gif)
-
-Real output:
+Sixty simulated invoices, an agent that's good but not perfect, no API key required. Real output:
 
 ```
 # Score report: Extract fields from invoice
 
 **ASSIST ONLY**: Use it to draft, keep a human on every case.
 
-Pass rate 93.3% [84.1%, 97.4%] is well short of the 95% target and no
+Pass rate 88.3% [77.8%, 94.2%] is well short of the 95% target and no
 confident subset reaches it; useful as a draft-generator, not as an
 unattended step.
 
 | Cases evaluated   | 60                   |
-| Passed            | 56                   |
-| Pass rate         | 93.3% [84.1%, 97.4%] |
+| Passed            | 53                   |
+| Pass rate         | 88.3% [77.8%, 94.2%] |
 | Target            | 95%                  |
-| Calibration error | 0.13 (well calibrated) |
+| Calibration error | 0.11 (usable)        |
 ```
 
 The calibration table in the full report is worth a look too: this agent is
-well calibrated above 0.8 (stated 0.92, actual 96%) and badly calibrated in
-the 0.6–0.8 band (stated 0.65, actual 75%). That's the kind of thing you want
+well calibrated above 0.8 (stated 0.92, actual 98%) and badly calibrated in
+the 0.6–0.8 band (stated 0.68, actual 33%). That's the kind of thing you want
 to know before you pick a threshold.
 
 ## The idea

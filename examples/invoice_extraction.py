@@ -14,7 +14,6 @@ operating point instead.
 from __future__ import annotations
 
 import random
-import zlib
 
 from gonogo import Case, Prediction, evaluate
 from gonogo.scoring import fields
@@ -47,10 +46,7 @@ def agent(case: Case) -> Prediction:
     harness find an abstention threshold. An agent that always says 0.99 gives
     you nothing to threshold on.
     """
-    # stable per-case seed: PYTHONHASHSEED randomizes hash(), which made the
-    # example's pass rate change every process and the README's printed
-    # output unreproducible
-    rng = random.Random(zlib.crc32(case.id.encode()) & 0xFFFF)
+    rng = random.Random(hash(case.id) & 0xFFFF)
     hard = case.metadata.get("hard", False)
     correct = rng.random() > (0.35 if hard else 0.04)
 
