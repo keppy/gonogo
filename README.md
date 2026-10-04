@@ -52,7 +52,7 @@ well calibrated above 0.8 (stated 0.92, actual 96%) and has a gap in
 the 0.6–0.8 band (stated 0.65, actual 75%, but only four cases). Those bins
 are descriptive, not evidence to set a threshold on their own.
 
-## One loop, five repos
+## One loop, three libraries
 
 `gonogo` is one tile of a small ecosystem that takes a task from *which
 model?* to *ship it or not*:
@@ -73,14 +73,16 @@ your cases ──► thomas ── train on labels (encoder) or score_text (RL);
 - **[thomas](https://github.com/keppy/thomas)** — the training harness. RL
   shares `score_text` across training and held-out evaluation; encoder SFT
   instead learns labels and needs a separate held-out evaluation.
-- **[evalroute](https://github.com/keppy/hermes-plugin-evalroute)** — the
+- **[evalroute](https://github.com/keppy/evalroute)** — the
   routing layer. Before any of it starts: classify the task, hand back the
   arm with measured costs where available and priors otherwise; collect
   ratings to prioritize the next controlled batch.
-- **The Hermes plugins** — the same three, inside your agent's session:
-  [gonogo](https://github.com/keppy/hermes-plugin-gonogo) for decisions,
-  [thomas](https://github.com/keppy/hermes-plugin-thomas) with a human approval
-  hook on its training tool, and `/route` before the first turn.
+- **The Hermes plugins** — thin adapters over the same three, inside your
+  agent's session: [gonogo](https://github.com/keppy/hermes-plugin-gonogo) for
+  decisions, [thomas](https://github.com/keppy/hermes-plugin-thomas) with a
+  human approval hook on its training tool, and
+  [evalroute](https://github.com/keppy/hermes-plugin-evalroute) for `/route`
+  before the first turn. All three are in the Hermes plugin catalog.
 
 ## The idea
 
@@ -255,7 +257,7 @@ That's a 4.4-point improvement that would headline a slide — and the paired te
 ## Works with
 
 The ecosystem picture and all four links live at the top of this README
-("One loop, five repos"). What thomas and gonogo agree on is written down
+("One loop, three libraries"). What thomas and gonogo agree on is written down
 and versioned in thomas's
 [docs/CONTRACT.md](https://github.com/keppy/thomas/blob/main/docs/CONTRACT.md)
 (contract version 1): case ids, reward → `passed` / `score`, the confidence
