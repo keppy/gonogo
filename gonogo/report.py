@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from .cases import CaseResult
+from .cases import ABSTAIN, ANSWER, CaseResult, answered
 from .decide import Decision, Verdict
 from .stats import OperatingPoint, reliability_table, risk_coverage
 
@@ -31,9 +31,9 @@ class Report:
     metadata: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        answered = [r for r in self.results if not r.prediction.error and not r.prediction.abstained]
-        if any(r.prediction.confidence is None for r in answered) and any(
-                r.prediction.confidence is not None for r in answered):
+        own = answered(self.results)
+        if any(r.prediction.confidence is None for r in own) and any(
+                r.prediction.confidence is not None for r in own):
             raise ValueError("mixed missing and present confidence; supply confidence for every answered case or none")
 
     @property
@@ -79,6 +79,40 @@ class Report:
             if r.case.group is not None and r.case.id is not None:
                 seen.setdefault(str(r.case.id), []).append(r.passed)
         return [(cid, sum(v), len(v)) for cid, v in seen.items() if len(v) > 1]
+
+    @property
+    def uses_actions(self) -> bool:
+        """True when any case expects, or any agent took, an action beyond answer/abstain.
+
+        Plain abstention predates actions, so a run that only answers and
+        abstains on answer cases reports exactly as it always has.
+        """
+        return any(r.case.expected_action != ANSWER
+                   or r.prediction.action not in (ANSWER, ABSTAIN) for r in self.results)
+
+    def actions(self) -> dict:
+        """Expected action x taken action, in cases, with the two failures worth naming.
+
+        `acted_when_should_hold_back`: the case expected a non-answer and the
+        agent answered. `held_back_when_should_act`: the case expected an
+        answer and the agent took a non-answer action. An errored case is
+        counted as taken action "error". Counts are cases even in a grouped run.
+        """
+        counts: dict[tuple[str, str], int] = {}
+        for r in self.results:
+            taken = "error" if r.prediction.error else r.prediction.action
+            key = (r.case.expected_action, taken)
+            counts[key] = counts.get(key, 0) + 1
+        rows = [{"expected": e, "taken": t, "n": n} for (e, t), n in counts.items()]
+        rows.sort(key=lambda x: (x["expected"] != ANSWER, x["expected"],
+                                 x["taken"] != x["expected"], x["taken"]))
+        return {
+            "matrix": rows,
+            "acted_when_should_hold_back": sum(
+                n for (e, t), n in counts.items() if e != ANSWER and t == ANSWER),
+            "held_back_when_should_act": sum(
+                n for (e, t), n in counts.items() if e == ANSWER and t not in (ANSWER, "error")),
+        }
 
     def failures(self, limit: int | None = None) -> list[CaseResult]:
         """Failed cases, worst score first -- the list to actually go read.
@@ -145,6 +179,19 @@ class Report:
                        f"With {self.n} cases the true rate could plausibly be anywhere in that range, "
                        f"which is why the interval and not the headline number drives the decision.")
         out.append("")
+
+        if self.uses_actions:
+            acts = self.actions()
+            out.append("## Actions")
+            out.append("")
+            out.append("| Expected | Taken | Cases |")
+            out.append("| --- | --- | --- |")
+            for row in acts["matrix"]:
+                out.append(f"| {row['expected']} | {row['taken']} | {row['n']} |")
+            out.append("")
+            out.append(f"- Acted when it should have held back: {acts['acted_when_should_hold_back']}")
+            out.append(f"- Held back when it should have acted: {acts['held_back_when_should_act']}")
+            out.append("")
 
         recurring = self.recurring()
         if recurring:
@@ -262,6 +309,20 @@ class Report:
                         f'anywhere in that range, which is why the interval and not the headline '
                         f'number drives the decision.</p>')
 
+        if self.uses_actions:
+            acts = self.actions()
+            rows.append('<table class="gng-table"><caption>Actions</caption><thead><tr>'
+                        '<th scope="col">Expected</th><th scope="col">Taken</th>'
+                        '<th scope="col">Cases</th></tr></thead><tbody>')
+            for row in acts["matrix"]:
+                flag = "ok" if row["expected"] == row["taken"] else "under"
+                rows.append(f'<tr><td>{e(row["expected"])}</td>'
+                            f'<td class="gng-{flag}">{e(row["taken"])}</td><td>{row["n"]}</td></tr>')
+            rows.append('</tbody></table>')
+            rows.append(f'<p class="gng-note">Acted when it should have held back: '
+                        f'{acts["acted_when_should_hold_back"]}. Held back when it should have '
+                        f'acted: {acts["held_back_when_should_act"]}.</p>')
+
         recurring = self.recurring()
         if recurring:
             rows.append('<table class="gng-table"><caption>Per case, across groups</caption><thead><tr>'
@@ -343,6 +404,16 @@ class Report:
                 f'</head>\n<body>\n{fragment}\n</body>\n</html>\n')
 
     def to_dict(self) -> dict:
+        d = self.decision
+        out = self._base_dict()
+        if self.uses_actions:  # absent otherwise, so legacy payloads are unchanged
+            out["actions"] = self.actions()
+            for entry, r in zip(out["cases"], self.results):
+                entry["expected_action"] = r.case.expected_action
+                entry["action"] = "error" if r.prediction.error else r.prediction.action
+        return out
+
+    def _base_dict(self) -> dict:
         d = self.decision
         return _json_safe({
             "task": self.task,

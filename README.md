@@ -110,7 +110,7 @@ report = evaluate(agent, cases, scorer=fields(["vendor", "total"]), target=0.95)
 print(report.markdown())
 ```
 
-Your agent is any callable. No base class, no decorator, no framework to adopt. Return a bare value, a `(value, confidence)` tuple, or a `Prediction` when you want to signal abstention.
+Your agent is any callable. No base class, no decorator, no framework to adopt. Return a bare value, a `(value, confidence)` tuple, or a `Prediction` when you want to signal abstention or another non-answer action (see [When the right move is not to answer](#when-the-right-move-is-not-to-answer)).
 
 ## What it tells you
 
@@ -225,6 +225,30 @@ report = evaluate(agent, cases, scorer=scorer, group_rule="all")
 A mix of grouped and ungrouped cases is an error, not a guess. `required_n` answers in groups when the trials are groups.
 
 Scorers may also take the case: `def scorer(output, expected, case)` is called with the `Case` as the third argument, so one run can route different cases to different scorers or read `case.metadata`. Two-argument scorers are unchanged.
+
+## When the right move is not to answer
+
+Some cases have no output to score because the correct behaviour is to hold back: stay silent, hand the case to a person, or wait for more information. Give those cases an `expected_action`. The case passes only if the agent takes that action, and the scorer is not called. An inbox-triage agent, where some messages need a drafted reply, some need no reply, and some need a person:
+
+```python
+cases = [
+    Case(input="Where is my order #1001?", expected="Your order shipped on ...", id="m1"),
+    Case(input="Weekly newsletter", expected=None, id="m2", expected_action="abstain"),
+    Case(input="I'm disputing this charge with my bank", expected=None, id="m3", expected_action="ask"),
+]
+
+def agent(case):
+    kind, draft, confidence = triage(case.input)
+    if kind == "reply":
+        return draft, confidence
+    return Prediction(None, confidence=confidence, action=kind)   # "abstain", "ask", "wait", ...
+
+report = evaluate(agent, cases, scorer=scorer)
+```
+
+In JSONL, `expected_action` is a top-level key; leave it out and the case expects an answer, so existing files load and save unchanged. Action names are plain strings, and `"answer"` is the only one with a special meaning.
+
+Two mistakes get named in the report's action table: *acted when it should have held back* (answered a case that expected a non-answer) and *held back when it should have acted* (took a non-answer action on a case that expected an answer). A non-answer on a case that expects an answer fails and sits at confidence 0.0, exactly as abstention always has. A non-answer on a case that expects one is the decision being graded, so it keeps the agent's confidence and counts like an answer in the curve and in the mixed-confidence check. `Prediction(abstained=True)` still works and means `action="abstain"`; every non-answer action sets `abstained`.
 
 ## Comparing two agents
 
