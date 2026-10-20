@@ -157,13 +157,14 @@ class CaseResult:
 def answered(results: list[CaseResult]) -> list[CaseResult]:
     """Results whose confidence is the agent's own, for the mixed-confidence check.
 
-    That is every non-errored answer, plus every non-answer action on a case
-    that expects a non-answer: there the action is the decision being graded,
-    so its confidence counts like an answer's. A non-answer on a case that
-    expects an answer is a deferral and carries a synthesized 0.0.
+    That is every non-errored result except a plain abstention on a case that
+    expects an answer: that one is a deferral and carries a synthesized 0.0.
+    Every other action -- an answer, a non-answer on a case that expects one,
+    or a decision such as "wait" or "ask" on a case that expected an answer --
+    is a decision the agent made, so its confidence counts.
     """
     return [r for r in results if not r.prediction.error
-            and (not r.prediction.abstained or r.case.expected_action != ANSWER)]
+            and not (r.prediction.action == ABSTAIN and r.case.expected_action == ANSWER)]
 
 
 def iter_batches(cases: list[Case], size: int) -> Iterator[list[Case]]:

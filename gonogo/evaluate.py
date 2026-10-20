@@ -90,14 +90,23 @@ def evaluate(
             results.append(CaseResult(case, pred, passed=ok, score=1.0 if ok else 0.0,
                                       detail=detail))
             continue
-        if pred.abstained:
+        if pred.action == ABSTAIN:
             # An explicit abstention is not a correct answer, but it is honest.
             # It lands at zero confidence so thresholding defers it first.
-            detail = ("agent abstained" if pred.action == ABSTAIN
-                      else f"agent took action {pred.action!r} instead of answering")
             results.append(CaseResult(
-                case, Prediction(pred.output, confidence=0.0, abstained=True, action=pred.action),
-                passed=False, score=0.0, detail=detail,
+                case, Prediction(pred.output, confidence=0.0, abstained=True),
+                passed=False, score=0.0, detail="agent abstained",
+            ))
+            continue
+        if pred.abstained:
+            # Any other non-answer ("wait", "ask", "no_reply") is a decision the
+            # agent made, not a deferral: nobody reviews a confident "wait" in
+            # production. It fails with the agent's own confidence, so a
+            # confidently wrong one counts against precision at every threshold
+            # instead of hiding in the review pile.
+            results.append(CaseResult(
+                case, pred, passed=False, score=0.0,
+                detail=f"agent took action {pred.action!r} instead of answering",
             ))
             continue
         try:

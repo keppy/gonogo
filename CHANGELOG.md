@@ -26,11 +26,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- A non-answer action on a case that expects one keeps the agent's
-  confidence and counts as answered for the mixed-confidence check, so a run
-  that states confidence must state it for those decisions too. A non-answer
-  on a case that expects an answer is unchanged: failed, confidence 0.0,
-  detail `agent abstained` (or the action's name).
+- Every non-answer action other than `"abstain"` is a decision the agent
+  made, so it keeps the agent's confidence on every case and counts as
+  answered for the mixed-confidence check; a run that states confidence must
+  state it for those decisions too. On a case that expects an answer such an
+  action fails at its own confidence, so a confidently wrong `"wait"` (a
+  silent miss in production) counts against precision instead of being
+  deferred below the threshold. Plain abstention on a case that expects an
+  answer is unchanged: failed, confidence 0.0, detail `agent abstained`.
 - A JSONL key named `expected_action` used to land in `metadata`; it is now
   the case field and must be a non-empty string.
 

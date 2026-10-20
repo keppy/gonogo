@@ -404,7 +404,6 @@ class Report:
                 f'</head>\n<body>\n{fragment}\n</body>\n</html>\n')
 
     def to_dict(self) -> dict:
-        d = self.decision
         out = self._base_dict()
         if self.uses_actions:  # absent otherwise, so legacy payloads are unchanged
             out["actions"] = self.actions()

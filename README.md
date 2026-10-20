@@ -233,7 +233,7 @@ Some cases have no output to score because the correct behaviour is to hold back
 ```python
 cases = [
     Case(input="Where is my order #1001?", expected="Your order shipped on ...", id="m1"),
-    Case(input="Weekly newsletter", expected=None, id="m2", expected_action="abstain"),
+    Case(input="Weekly newsletter", expected=None, id="m2", expected_action="no_reply"),
     Case(input="I'm disputing this charge with my bank", expected=None, id="m3", expected_action="ask"),
 ]
 
@@ -241,14 +241,14 @@ def agent(case):
     kind, draft, confidence = triage(case.input)
     if kind == "reply":
         return draft, confidence
-    return Prediction(None, confidence=confidence, action=kind)   # "abstain", "ask", "wait", ...
+    return Prediction(None, confidence=confidence, action=kind)   # "no_reply", "ask", "wait", ...
 
 report = evaluate(agent, cases, scorer=scorer)
 ```
 
-In JSONL, `expected_action` is a top-level key; leave it out and the case expects an answer, so existing files load and save unchanged. Action names are plain strings, and `"answer"` is the only one with a special meaning.
+In JSONL, `expected_action` is a top-level key; leave it out and the case expects an answer, so existing files load and save unchanged. Action names are plain strings. Two have a special meaning: `"answer"`, and `"abstain"`, which means *I defer this one to a person* (the selective-prediction sense).
 
-Two mistakes get named in the report's action table: *acted when it should have held back* (answered a case that expected a non-answer) and *held back when it should have acted* (took a non-answer action on a case that expected an answer). A non-answer on a case that expects an answer fails and sits at confidence 0.0, exactly as abstention always has. A non-answer on a case that expects one is the decision being graded, so it keeps the agent's confidence and counts like an answer in the curve and in the mixed-confidence check. `Prediction(abstained=True)` still works and means `action="abstain"`; every non-answer action sets `abstained`.
+Two mistakes get named in the report's action table: *acted when it should have held back* (answered a case that expected a non-answer) and *held back when it should have acted* (took a non-answer action on a case that expected an answer). Every action except `"abstain"` is a decision the agent made, so it keeps the agent's confidence wherever it lands. That matters: a confident `"wait"` on a message that needed a reply is a silent miss in production, not a case someone reviews, so it counts against precision at every threshold instead of hiding below one. Only `"abstain"` on a case that expects an answer is treated as a deferral: it fails and sits at confidence 0.0, exactly as abstention always has. So name a "say nothing" decision (`"no_reply"`), don't call it `"abstain"`. `Prediction(abstained=True)` still works and means `action="abstain"`; every non-answer action sets `abstained`.
 
 ## Comparing two agents
 

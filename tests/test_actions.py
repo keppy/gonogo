@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from gonogo import Case, Prediction, evaluate
+from gonogo import Case, Prediction, Verdict, evaluate
 from gonogo.cases import CaseResult
 
 # An inbox: some messages need a drafted reply, some need no reply at all,
@@ -78,10 +78,39 @@ class TestScoring:
         assert set(seen) == ANSWER_IDS
 
     def test_non_answer_action_on_answer_case_names_the_action(self):
-        r = evaluate(lambda c: Prediction(None, action="ask"), [Case(input=1, expected=1)]).results[0]
-        assert not r.passed and r.confidence == 0.0
+        r = evaluate(lambda c: Prediction(None, confidence=0.8, action="ask"),
+                     [Case(input=1, expected=1)]).results[0]
+        assert not r.passed and r.confidence == 0.8  # a decision, not a deferral
         assert r.detail == "agent took action 'ask' instead of answering"
         assert r.prediction.action == "ask" and r.prediction.abstained
+
+    def test_confident_wrong_hold_back_counts_against_precision(self):
+        """A confident "wait" on a message that needed a reply is a silent miss in
+        production, not a case a reviewer sees. It must not vanish below the threshold."""
+        cases = [Case(input=f"m{i}", expected="r", id=f"m{i}") for i in range(100)]
+
+        def gate(case):
+            if int(case.id[1:]) < 10:
+                return Prediction(None, confidence=0.97, action="wait")
+            return "r", 0.96
+
+        report = evaluate(gate, cases, target=0.95)
+        assert report.actions()["held_back_when_should_act"] == 10
+        # Before the fix: "abstain below 0.96 -> 90% coverage at 100.0% precision, 10 to
+        # review", verdict AUTOMATE WITH REVIEW. The 10 confident waits sit above every
+        # threshold that covers anything, so no threshold reaches the target.
+        assert report.decision.operating_point is None
+        assert report.decision.verdict is not Verdict.AUTOMATE_WITH_REVIEW
+        assert {r.confidence for r in report.results if not r.passed} == {0.97}
+
+    def test_wrong_hold_back_without_confidence_is_mixed(self):
+        def agent(case):
+            if case.input:
+                return Prediction(None, action="wait")  # no confidence on a decision
+            return case.expected, 0.9
+
+        with pytest.raises(ValueError, match="mixed missing and present confidence"):
+            evaluate(agent, [Case(input=i, expected=i) for i in range(2)])
 
     def test_correct_non_answer_keeps_agent_confidence(self):
         def agent(case):
