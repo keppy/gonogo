@@ -86,6 +86,21 @@ class TestMcNemar:
         assert c.only_a == 1 and c.only_b == 1
         assert c.p_value == 1.0 and not c.significant
 
+    def test_verdict_never_contradicts_the_printed_interval(self):
+        # Banking77, Claude (A) vs encoder (B): 14 only-A, 28 only-B on 250 cases.
+        # McNemar p=0.044 but the conservative interval is +5.6% [-2.3%, +13.3%].
+        # Before the fix the summary said "agent B is better" next to that interval.
+        a_pass = {f"c{i}": True for i in range(190)} | {f"a{i}": True for i in range(14)} \
+            | {f"b{i}": False for i in range(28)} | {f"f{i}": False for i in range(18)}
+        b_pass = {f"c{i}": True for i in range(190)} | {f"a{i}": False for i in range(14)} \
+            | {f"b{i}": True for i in range(28)} | {f"f{i}": False for i in range(18)}
+        c = compare(report_from(a_pass), report_from(b_pass))
+        assert (c.n_shared, c.only_a, c.only_b) == (250, 14, 28)
+        assert c.test_significant and c.low < 0.0 < c.high
+        assert not c.significant and c.borderline
+        assert "is better" not in c.summary()
+        assert "borderline" in c.summary() and "borderline" in str(c)
+
     def test_exact_p_matches_hand_computed_value(self):
         # 5 disagreements all favoring B: two-sided p = 2 * (1/2)^5 = 0.0625
         base = {str(i): True for i in range(20)}

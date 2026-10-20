@@ -36,6 +36,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   answer is unchanged: failed, confidence 0.0, detail `agent abstained`.
 - A JSONL key named `expected_action` used to land in `metadata`; it is now
   the case field and must be a non-empty string.
+- `compare()` declares a winner (`Comparison.significant`, "agent B is
+  better") only when McNemar's test and the printed difference interval
+  agree. When they disagree the verdict is *borderline*
+  (`Comparison.borderline`); the test alone is `Comparison.test_significant`.
+  Before, Banking77 Claude vs encoder (14 vs 28 disagreements on 250 cases)
+  printed "agent B is better" next to `+5.6% [-2.3%, +13.3%]`.
 
 ## [0.3.0] - 2026-09-28
 

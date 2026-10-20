@@ -44,15 +44,38 @@ class Comparison:
     unit: str = "cases"
 
     @property
-    def significant(self) -> bool:
+    def test_significant(self) -> bool:
+        """McNemar's test alone: p below 1 - level."""
         return self.p_value < (1.0 - self.level)
+
+    @property
+    def interval_excludes_zero(self) -> bool:
+        return self.low > 0.0 or self.high < 0.0
+
+    @property
+    def significant(self) -> bool:
+        """A winner is declared only when the test and the printed interval agree.
+
+        The interval is conservative (simultaneous Wilson bounds), so McNemar can
+        reject while the interval still includes 0 (e.g. 14 vs 28 disagreements on
+        250 cases: p=0.044, difference +5.6% [-2.3%, +13.3%]). Saying "B is better"
+        next to an interval that includes no difference contradicts the reader's
+        own eyes; that case is reported as borderline instead.
+        """
+        return self.test_significant and self.interval_excludes_zero
+
+    @property
+    def borderline(self) -> bool:
+        """The test and the interval disagree: not established on these cases."""
+        return self.test_significant != self.interval_excludes_zero
 
     @property
     def discordant(self) -> int:
         return self.only_a + self.only_b
 
     def __str__(self) -> str:
-        verdict = "distinguishable" if self.significant else "not distinguishable"
+        verdict = ("distinguishable" if self.significant
+                   else "borderline" if self.borderline else "not distinguishable")
         return (f"{self.rate_b:.1%} vs {self.rate_a:.1%} "
                 f"({self.difference:+.1%} [{self.low:+.1%}, {self.high:+.1%}], "
                 f"p={self.p_value:.3f}) — {verdict} on {self.n_shared} shared {self.unit}")
@@ -73,6 +96,10 @@ class Comparison:
         if self.significant:
             better = "B" if self.difference > 0 else "A"
             lines.append(f"Verdict             agent {better} is better on these {self.unit}")
+        elif self.borderline:
+            lines.append(f"Verdict             borderline; McNemar p and the {self.level:.0%} "
+                         "interval disagree, so not established; more shared "
+                         f"{self.unit} needed")
         else:
             lines.append("Verdict             no detectable difference; "
                          "the sample cannot separate them")

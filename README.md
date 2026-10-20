@@ -252,7 +252,7 @@ Two mistakes get named in the report's action table: *acted when it should have 
 
 ## Comparing two agents
 
-Swapping in a new model and watching the pass rate rise is the most common way a team convinces itself of an improvement that isn't there. Two overlapping intervals tell you very little — but when both agents ran the *same* cases, the results are paired. `compare()` runs McNemar's test on the shared case ids (or groups, when grouped): agreements carry no information for that test. The difference interval uses conservative simultaneous Wilson bounds on the two discordant rates and does not collapse at the boundaries. Grouped runs must pair the same case membership within each shared group.
+Swapping in a new model and watching the pass rate rise is the most common way a team convinces itself of an improvement that isn't there. Two overlapping intervals tell you very little — but when both agents ran the *same* cases, the results are paired. `compare()` runs McNemar's test on the shared case ids (or groups, when grouped): agreements carry no information for that test. The difference interval uses conservative simultaneous Wilson bounds on the two discordant rates and does not collapse at the boundaries. A winner is declared only when McNemar's test and that interval agree; when they disagree (the test rejects but the interval still includes zero), the verdict says *borderline* rather than putting "B is better" next to an interval that includes no difference. Grouped runs must pair the same case membership within each shared group.
 
 ```python
 from gonogo import compare
