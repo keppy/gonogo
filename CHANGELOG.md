@@ -4,6 +4,39 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Expected actions.** `Case.expected_action` (default `"answer"`) says the
+  correct behaviour for a case is not to answer: `"abstain"`, `"ask"`,
+  `"wait"`, or any other name. Such a case passes only if
+  `Prediction.action` matches it, and the scorer is not called. It is a
+  reserved top-level JSONL key, written by `to_jsonl()` only when it is not
+  `"answer"`, so existing files round-trip byte for byte.
+- `Prediction.action` (default `"answer"`). `abstained` now means "did not
+  answer" and is kept in step: any non-answer action sets it, and
+  `abstained=True` alone reads as `action="abstain"`.
+- `Report.actions()` and `Report.uses_actions`: expected-by-taken action
+  counts, with the two named failures *acted when it should have held back*
+  and *held back when it should have acted*. Shown in `markdown()`, `html()`
+  and `to_dict()` (`actions`, plus per-case `expected_action` and `action`)
+  only when a case expects, or an agent takes, an action other than answer or
+  abstain; other reports are unchanged.
+
+### Changed
+
+- Every non-answer action other than `"abstain"` is a decision the agent
+  made, so it keeps the agent's confidence on every case and counts as
+  answered for the mixed-confidence check; a run that states confidence must
+  state it for those decisions too. On a case that expects an answer such an
+  action fails at its own confidence, so a confidently wrong `"wait"` (a
+  silent miss in production) counts against precision instead of being
+  deferred below the threshold. Plain abstention on a case that expects an
+  answer is unchanged: failed, confidence 0.0, detail `agent abstained`.
+- A JSONL key named `expected_action` used to land in `metadata`; it is now
+  the case field and must be a non-empty string.
+
 ## [0.3.0] - 2026-09-28
 
 A review pass over the decision semantics. The theme: a threshold selected on

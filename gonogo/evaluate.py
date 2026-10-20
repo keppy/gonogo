@@ -6,7 +6,7 @@ import concurrent.futures as futures
 import inspect
 from typing import Any, Callable
 
-from .cases import Case, CaseResult, Prediction
+from .cases import ABSTAIN, ANSWER, Case, CaseResult, Prediction, answered
 from .decide import MIN_USEFUL_COVERAGE, decide
 from .report import Report
 from .scoring import Score, Scorer, exact
@@ -51,6 +51,12 @@ def evaluate(
     A scorer may take `(output, expected)` or `(output, expected, case)`. The
     second form lets one run route different cases to different scorers, or
     read `case.metadata` while scoring.
+
+    A case whose `expected_action` is not "answer" passes only if the agent's
+    `Prediction.action` matches it; the scorer is not called. Its confidence
+    is the agent's own, like an answer's. A non-answer on a case that expects
+    an answer fails and is placed at confidence 0.0, as abstentions always
+    have been.
     """
     if not cases:
         raise ValueError("no cases to evaluate")
@@ -70,12 +76,37 @@ def evaluate(
             results.append(CaseResult(case, pred, passed=False, score=0.0,
                                       detail=f"agent error: {pred.error}"))
             continue
-        if pred.abstained:
+        if case.expected_action != ANSWER:
+            # Holding back is the behaviour under test. The action is the
+            # decision, so it is graded on its own and keeps the agent's
+            # confidence; the scorer never sees it.
+            ok = pred.action == case.expected_action
+            if ok:
+                detail = f"took expected action {pred.action!r}"
+            elif pred.action == ANSWER:
+                detail = f"answered; expected action {case.expected_action!r}"
+            else:
+                detail = f"took action {pred.action!r}; expected {case.expected_action!r}"
+            results.append(CaseResult(case, pred, passed=ok, score=1.0 if ok else 0.0,
+                                      detail=detail))
+            continue
+        if pred.action == ABSTAIN:
             # An explicit abstention is not a correct answer, but it is honest.
             # It lands at zero confidence so thresholding defers it first.
             results.append(CaseResult(
                 case, Prediction(pred.output, confidence=0.0, abstained=True),
                 passed=False, score=0.0, detail="agent abstained",
+            ))
+            continue
+        if pred.abstained:
+            # Any other non-answer ("wait", "ask", "no_reply") is a decision the
+            # agent made, not a deferral: nobody reviews a confident "wait" in
+            # production. It fails with the agent's own confidence, so a
+            # confidently wrong one counts against precision at every threshold
+            # instead of hiding in the review pile.
+            results.append(CaseResult(
+                case, pred, passed=False, score=0.0,
+                detail=f"agent took action {pred.action!r} instead of answering",
             ))
             continue
         try:
@@ -86,12 +117,12 @@ def evaluate(
             continue
         results.append(CaseResult(case, pred, passed=passed, score=value, detail=detail))
 
-    # Compare only agent-supplied scores. Abstentions synthesize 0 and crashes
-    # may synthesize 1 for thresholding; neither turns a confidence-free run
-    # into a partially scored one.
-    answered = [r for r in results if not r.prediction.error and not r.prediction.abstained]
-    supplied = any(r.prediction.confidence is not None for r in answered)
-    missing = any(r.prediction.confidence is None for r in answered)
+    # Compare only agent-supplied scores. Abstentions on answer cases
+    # synthesize 0 and crashes may synthesize 1 for thresholding; neither
+    # turns a confidence-free run into a partially scored one.
+    own = answered(results)
+    supplied = any(r.prediction.confidence is not None for r in own)
+    missing = any(r.prediction.confidence is None for r in own)
     if supplied and missing:
         raise ValueError("mixed missing and present confidence; supply confidence for every answered case or none")
     if supplied:
