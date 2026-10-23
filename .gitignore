@@ -14,3 +14,7 @@ examples/banking77_baseline.json
 examples/banking77_claude.json
 examples/banking77_encoder.json
 examples/banking77_encoder_report.html
+# inbox_triage ships ids, labels, cached answers and report JSON; never email text
+examples/inbox_triage/data/messages.jsonl
+examples/inbox_triage/data/traces/
+examples/inbox_triage/data/reports/*.html

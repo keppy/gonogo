@@ -6,14 +6,6 @@ Feed `gonogo` your agent and your real cases. Back comes a decision: ship it, te
 
 This is deliberately **not** another eval framework — several good ones already exist. What none of them do is convert a score into a deployment decision you can defend at the sample sizes pilots actually run: forty to a hundred cases, not ten thousand.
 
-[![Fine-tuning an encoder and getting a go/no-go verdict — thomas + gonogo](https://i.ytimg.com/vi/ozWITnaJtf4/maxresdefault.jpg)](https://youtu.be/ozWITnaJtf4?t=2334)
-
-**Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal. The verdict, the intervals and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
-
-- 87.2% [82.5%, 90.8%] pass rate against a 95% target → **AUTOMATE WITH REVIEW** candidate (fresh holdout required before deployment)
-- at confidence ≥ 0.91: 98.3% precision [95.2%, 99.4%] on 71% of cases, the rest routed to a human
-- calibration error 0.03 after temperature scaling; +10.0 points over the TF-IDF baseline on the same 250 cases (p < 0.001)
-
 ## Install
 
 ```bash
@@ -36,33 +28,64 @@ observed 94.0% on 50 cases is above the 90% target, but the 95% interval reaches
 The same from Python is `gonogo.decide_counts(47, 50, target=0.90)`. With per-case
 results you get more: a review threshold, calibration, and the actions table.
 
-```bash
-python examples/invoice_extraction.py
+## Grade what your agent didn't do
+
+Most agent logs record what the agent did. A message it decided to leave alone leaves no
+row, so a correct silence and a missed reply look the same. Give each case the action that
+was right, have the agent return the action it took, and gonogo grades the decision,
+including the ones where nothing was sent:
+
+```python
+from gonogo import Case, Prediction, evaluate
+
+cases = [
+    Case(input=msg1, expected=reference_reply, id="m1"),                    # needs an answer
+    Case(input=msg2, expected=None, id="m2", expected_action="no_reply"),   # needs nothing
+    Case(input=msg3, expected=None, id="m3", expected_action="ask_human"),  # needs the owner
+]
+
+def agent(case):
+    action, draft, confidence = triage(case.input)
+    if action == "reply":
+        return draft, confidence
+    return Prediction(None, confidence=confidence, action=action)
+
+print(evaluate(agent, cases, scorer=reply_scorer, target=0.90).markdown())
 ```
 
-Sixty simulated invoices, an agent that's good but not perfect, no API key
-required. The example is deterministic (stable per-case seeds). Excerpt from its report:
+The card gets an actions table. Here is one from
+[`examples/inbox_triage`](examples/inbox_triage): 329 held-out Enron messages, a
+fine-tuned encoder as the gate.
 
 ```
-# Score report: Extract fields from invoice
+## Actions
 
-**ASSIST ONLY**: Use it to draft, keep a human on every case.
+| Expected  | Taken     | Cases |
+| --------- | --------- | ----- |
+| answer    | answer    |     7 |
+| answer    | ask_human |     3 |
+| ask_human | ask_human |   107 |
+| ask_human | answer    |    10 |
+| ask_human | no_reply  |    38 |
+| ask_human | wait      |     4 |
+| no_reply  | no_reply  |   137 |
+| no_reply  | answer    |     2 |
+| no_reply  | ask_human |     7 |
+| wait      | wait      |     6 |
+| wait      | answer    |     1 |
+| wait      | ask_human |     3 |
+| wait      | no_reply  |     4 |
 
-Pass rate 93.3% [84.1%, 97.4%] is below the 95% target and no confident subset reaches it; useful as a draft-generator, not as an unattended step.
-
-| | |
-| --- | --- |
-| Cases evaluated | 60 |
-| Passed | 56 |
-| Pass rate | 93.3% [84.1%, 97.4%] |
-| Target | 95% |
-| Calibration error | 0.13 (well calibrated) |
+- Acted when it should have held back: 13
+- Held back when it should have acted: 3
 ```
 
-The calibration table in the full report is worth a look too: this agent is
-well calibrated above 0.8 (stated 0.92, actual 96%) and has a gap in
-the 0.6–0.8 band (stated 0.65, actual 75%, but only four cases). Those bins
-are descriptive, not evidence to set a threshold on their own.
+That encoder leaves 42 messages the owner needed with no reply and no hand-off; Claude
+leaves 5 and TypeSafe's Jev 3, on the same cases. Under a declared cost rule the three
+pass rates can't be told apart, and the encoder's mistakes cost about twice as much per
+message. Its pass rate alone would never have shown that. The example replays offline
+with no API key: three gates, paired comparisons, a frozen-threshold test and the cost
+rule.
 
 ## One loop, three libraries
 
@@ -124,6 +147,36 @@ print(report.markdown())
 
 Your agent is any callable. No base class, no decorator, no framework to adopt. Return a bare value, a `(value, confidence)` tuple, or a `Prediction` when you want to signal abstention or another non-answer action (see [When the right move is not to answer](#when-the-right-move-is-not-to-answer)).
 
+### A deterministic example, no API key
+
+```bash
+python examples/invoice_extraction.py
+```
+
+Sixty simulated invoices, an agent that's good but not perfect, no API key
+required. The example is deterministic (stable per-case seeds). Excerpt from its report:
+
+```
+# Score report: Extract fields from invoice
+
+**ASSIST ONLY**: Use it to draft, keep a human on every case.
+
+Pass rate 93.3% [84.1%, 97.4%] is below the 95% target and no confident subset reaches it; useful as a draft-generator, not as an unattended step.
+
+| | |
+| --- | --- |
+| Cases evaluated | 60 |
+| Passed | 56 |
+| Pass rate | 93.3% [84.1%, 97.4%] |
+| Target | 95% |
+| Calibration error | 0.13 (well calibrated) |
+```
+
+The calibration table in the full report is worth a look too: this agent is
+well calibrated above 0.8 (stated 0.92, actual 96%) and has a gap in
+the 0.6–0.8 band (stated 0.65, actual 75%, but only four cases). Those bins
+are descriptive, not evidence to set a threshold on their own.
+
 ## What it tells you
 
 Five verdicts; a review threshold selected on the measured set is not a ship authorization:
@@ -157,6 +210,14 @@ Note what the table above actually proves: against a 95% target, *no* threshold 
 It also checks whether your confidence means anything. Expected calibration error above 0.15 flags the confidence scale as not-a-probability — but it keeps the candidate operating point, because precision at a cut point is measured directly and doesn't depend on the scale meaning anything. That same-set estimate is optimistic until checked on a fresh holdout. Calibration and discrimination are different properties; see the next section for a model that fails one and aces the other.
 
 ## A real measurement
+
+[![Fine-tuning an encoder and getting a go/no-go verdict — thomas + gonogo](https://i.ytimg.com/vi/ozWITnaJtf4/maxresdefault.jpg)](https://youtu.be/ozWITnaJtf4?t=2334)
+
+**Video (40:33):** the Banking77 canary scored by a ModernBERT-small encoder fine-tuned through [thomas](https://github.com/keppy/thomas) on Modal. The verdict, the intervals and the operating point worked live, including a scorer bug that briefly reported 0.0% and the fix on camera. Live demo from 37:16. [Writeup](https://www.keppylab.com/blog/2026/09/21/banking77-canary-872-pass-two-dead-runs-one-false-alarm/).
+
+- 87.2% [82.5%, 90.8%] pass rate against a 95% target → **AUTOMATE WITH REVIEW** candidate (fresh holdout required before deployment)
+- at confidence ≥ 0.91: 98.3% precision [95.2%, 99.4%] on 71% of cases, the rest routed to a human
+- calibration error 0.03 after temperature scaling; +10.0 points over the TF-IDF baseline on the same 250 cases (p < 0.001)
 
 `examples/banking77_routing.py` runs against [Banking77](https://github.com/PolyAI-LDN/task-specific-datasets) — 13,083 genuine retail-bank customer messages across 77 intents. The agent is an ordinary TF-IDF nearest-centroid baseline, stdlib only, no model API.
 

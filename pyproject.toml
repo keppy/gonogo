@@ -42,5 +42,9 @@ path = "gonogo/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["gonogo"]
 
+[tool.hatch.build.targets.sdist]
+# The inbox-triage example's replay data (~7 MB) lives in the repo, not the sdist.
+exclude = ["examples/inbox_triage/data"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

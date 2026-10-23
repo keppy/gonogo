@@ -1,0 +1,3399 @@
+{
+  "task": "Inbox triage gate: encoder-inbox-triage-v4 (holdout/enriched; labels: model panel (deepseek-v4-pro + GLM-5.3, agreement only), not human labels)",
+  "verdict": "AUTOMATE WITH REVIEW",
+  "can_automate": false,
+  "reason": "overall pass rate 78.1% [73.3%, 82.2%] misses the 90% target; a candidate threshold at confidence 0.97 reaches 96.6% precision on 27% of cases on this selection set, but needs a fresh holdout before deployment",
+  "n": 329,
+  "n_passed": 257,
+  "n_groups": null,
+  "n_groups_passed": null,
+  "pass_rate": {
+    "point": 0.7811550151975684,
+    "low": 0.7333729764941024,
+    "high": 0.822447204848336,
+    "level": 0.95
+  },
+  "target": 0.9,
+  "calibration_error": 0.06415896656534957,
+  "needed_n": null,
+  "operating_point": {
+    "threshold": 0.9702,
+    "coverage": 0.270516717325228,
+    "n_covered": 89,
+    "precision": 0.9662921348314607,
+    "precision_low": 0.9055263755943858,
+    "precision_high": 0.9884707788482102,
+    "n_deferred": 240
+  },
+  "notes": [
+    "The 0.97 threshold was chosen by searching this same case set, so its precision is optimistically biased. Re-measure it on fresh cases before relying on it."
+  ],
+  "metadata": {
+    "scorer": "decided",
+    "group_rule": "none",
+    "label_source": "model panel (deepseek-v4-pro + GLM-5.3, agreement only), not human labels"
+  },
+  "cases": [
+    {
+      "id": "enron-1481d092019d",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4298,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f1a0516103b9",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8174,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-aa623dcbf8b7",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9377,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-2465bf1fe599",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5786,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-62343ac8ba55",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9764,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-2c34eb9076df",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9702,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-06123b402747",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5566,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c1a70fc4a527",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9994,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-05c9c2ebb145",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9982,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-284075f12bd9",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5835,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a9240886a3e1",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5907,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-489e14dc8fad",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9968,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-ee09ec901b86",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9813,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c37d93ae6f6d",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5326,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-a435a6da65e3",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7343,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6168ca616073",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9926,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7eeb53c3e7e3",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9982,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a597a9f8b5dc",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f51a7756a59b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7828,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-77f4530b1129",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9976,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-e46dad62593d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9918,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-91ff06557ef4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9955,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-087633bfc3a4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9939,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-cb2718cfe8ad",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7557,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-003062d21a58",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9795,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-54afe5d5b226",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.994,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-fd94ea17bff6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9919,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a83843c4815e",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7575,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-31da9e62cd3b",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.3934,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b2564f3e28b7",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8315,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-cd8ddd11622f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9926,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-38b2f6adc8f5",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.558,
+      "detail": "agent took action 'ask_human' instead of answering",
+      "expected_action": "answer",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c6813efbecc0",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7503,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-86d9b47548fd",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9231,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a0a3bee11b5c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9993,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8cb3961d117a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f1667d7ce416",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7079,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-425ce993f703",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9774,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5a9d16084698",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9172,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-b6899dd514a9",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4461,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-37ea6f362b35",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9889,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a473eff1aaea",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9976,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-ecf764b6eda4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9946,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-966f6e772cc6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.997,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1ed55fad96f2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9793,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-fe258951c735",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9897,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f942564af995",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6088,
+      "detail": "agent took action 'ask_human' instead of answering",
+      "expected_action": "answer",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b4d5cfad8407",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9935,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5b628b7fb84a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9989,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-62074407f614",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9998,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5023c9985c31",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8462,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0f7b106a6088",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9187,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-33498d8b97aa",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4936,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-67a23e3b23ad",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9689,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-dfbaa2b4e91b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9976,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-83a420b41741",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8759,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-06b7c4582596",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9999,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-75626d4b9d28",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6577,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-48f47a043533",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8827,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-29d32dc60804",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4792,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-dbf96d20d3af",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-aea6f79d2a69",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5434,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-2f42edea5322",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.982,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-62fb7a7653d0",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9078,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c0bd52512128",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9644,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-287686cd5f91",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5525,
+      "detail": "took action 'no_reply'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6dfae11358d5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9988,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7bb4b278a904",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8806,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-d9697102367c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9817,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-d76d1e6a1c7d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9445,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-946e0bf5db53",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9088,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a8038d92bc42",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4944,
+      "detail": "took action 'ask_human'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-d9497fa0336d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9842,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c97b9337e856",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.997,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-58dfbdc18ec4",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6909,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1b8dce84e3b8",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.494,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6d07511a0ebe",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9972,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-cb22830f927f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9974,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-58496ffe15f6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9085,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7f036f02097f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9991,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7a9ac68ff250",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9002,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7d1a85edf57f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9887,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-074dbbd8183a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9971,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1013c1fc250b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9314,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-d6e876efa757",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9352,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-f6e35905aaa6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9974,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a10b16684ac5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9427,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-40bc7918dad7",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8085,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-b96ed3ada3fa",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9534,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-e646e4d0b6b1",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9935,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-aa00857ddedf",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9975,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-ca7add13a539",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.826,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-79b1dbaead35",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5799,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-252fa032b1d3",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9184,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-272946294e43",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9286,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-27e3811e0211",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8905,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-deb63f991968",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9614,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-34d457283557",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.3949,
+      "detail": "agent took action 'ask_human' instead of answering",
+      "expected_action": "answer",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0d3ca46a31da",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9866,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9dcbac1ec86a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8442,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-36afc4ef6a0b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9477,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8377703eb2a4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9974,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-891e0860a6f0",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9527,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-860f9ee45fbd",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8cd6f390df54",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.897,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-fd4d39678f30",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8183,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-7932bcc3a517",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9916,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f51be31de252",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9999,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-518dec101646",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.47,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-04b82c10d0a5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9979,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-d54001673b51",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9996,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-b983fbc6cac5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.792,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-21971c8ab2a2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9997,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-75900068b81d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9045,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-d12315c96f53",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9974,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-2371272da64d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8855,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-300567431594",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8789,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-15a43882b157",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.777,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c8cf79835948",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9932,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9e4597c700f3",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.99,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1e91148c259a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5150037190e2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7273,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-48fc3ec4e811",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9812,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6975ccf42a93",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7836,
+      "detail": "answered; expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "answer"
+    },
+    {
+      "id": "enron-c8e54b6e5945",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9882,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8c2662d74d31",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9105,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-dfc071bca0b7",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9954,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-0777203016d1",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4827,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-5ebcc83ec1b7",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5852,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c1e26f72c238",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5289,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c4b314be2d04",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6412,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-06da52411349",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4797,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-16ad55c00b55",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7463,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0095ce746b93",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8013,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8e620b31f7c2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8617,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-97bda4b3fc0f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8115,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-2dd9537d9cc9",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9946,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-510609ea9436",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9906,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-74abedfe1f6a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8793,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-0101c67d205f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9923,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9f9acf5a5604",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9978,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-fd251974591a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9408,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-ec5fd9052ab5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5192,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-0793cc0ecad6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9501,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-161ead56e47b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5807,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-480677a2d565",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4509,
+      "detail": "took action 'no_reply'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9f2f38571c1e",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7017,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-6abafb4b644f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.582,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-668344fa90de",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.563,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-66c0f7922a80",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9246,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-de01468f8529",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9732,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9163023f5f3a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9985,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-00f03e295294",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9777,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-cdd76ba48670",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5225,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-aa4ca3637450",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7045,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-3ae6275bbc52",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4657,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-27e29105efaf",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9542,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a44ef97e21ac",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9994,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-e0c53652d0b2",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7309,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-d473f33e537a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7971,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-30285c877b67",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.584,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-57e4cca4ebb2",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9467,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-16f02f6fc644",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9909,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8a8f22fe300c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9719,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8b97f472067d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8749,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c5c9d0ba4008",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8033,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-1d59e8a9fa25",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7223,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-e6961b538f4b",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5134,
+      "detail": "took action 'no_reply'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6f1f01a49116",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9998,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1c07de219890",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9981,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-6b9ac4ff43f7",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5493,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-48bbf2ef26ca",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9849,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-32ed090fe877",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9389,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8fed8c3e7853",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9818,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-46bc47f0e831",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9751,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-cede3c3b2001",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9986,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-3e3688b3d5e1",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8465,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f023c5a779f6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-de522daad0bf",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7936,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5858e4558570",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9849,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-131553142398",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9798,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-725f9aef143f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9766,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-f676330a8b3d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9856,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7c1be960e955",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5193,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-ebc946e90471",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8156,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b7c0ece0154e",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9794,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-68e285c7e617",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9371,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-4019cefd5230",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6303,
+      "detail": "took action 'wait'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "wait"
+    },
+    {
+      "id": "enron-9aa6a582f0ee",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9942,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-fdb9d6aa7f85",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9919,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-4b1c4e1b9060",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8002,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-00d26bd5dd25",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9112,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-777cdb65868a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6357,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-d30ee0fd0b7b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8986,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a66cf4639be5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9231,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-931ead6c26ca",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9989,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-969d57d7be23",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 1.0,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-153c5118b5fa",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9545,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-26b0a0c2719a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5034,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-8d84339273e4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9083,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a77109d82431",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6114,
+      "detail": "answered; expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "answer"
+    },
+    {
+      "id": "enron-fc849261a2aa",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9058,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-3e2a1a89249a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6226,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-2aaffe6e3ab7",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5509,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-d490e7c26890",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5069,
+      "detail": "took action 'wait'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "wait"
+    },
+    {
+      "id": "enron-c74e87bb0fae",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4422,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-88f2d7ef2016",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8937,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-84dd6e6aa86b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4811,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-dc46171bddb3",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4472,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-801106de970c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9865,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-07ed1071a4fa",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6589,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0303215393c6",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8869,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-f7dc7198263b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9211,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-22833afbc06b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4868,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-f05d339dbb0a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4991,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-73be7c113fda",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7754,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-9c33d1541304",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8967,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-6b8862fc9b07",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.739,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-7e9d806994d0",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7367,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-46ba7fc39f83",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9026,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-9d19410e66ad",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9675,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-47ad519c81e4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5561,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-9094d980800f",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6646,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c05214f93377",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8992,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-54d061abcfd4",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6414,
+      "detail": "answered; expected action 'wait'",
+      "expected_action": "wait",
+      "action": "answer"
+    },
+    {
+      "id": "enron-1a60493d4a6c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6922,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-4fa748226f90",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6048,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-d9effbbe6fc5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4411,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-a35b7813d12c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8628,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-86f986dff62b",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9699,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-9ecf7ad29244",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6757,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-91eceb3ec64d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4983,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-dd6b34840a37",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7936,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-cd5cd3843100",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6268,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-46e212f94410",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9109,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-616144d5eb51",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5299,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-e12a4df81ba2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7825,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-8e1a501e6def",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8042,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-65bda9077899",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6452,
+      "detail": "took action 'ask_human'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-72d4b6c14746",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8124,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-336e94e5b7a3",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4437,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b251639f030c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9084,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-5fb7d0699f1e",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.79,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1cd2e48dc2ea",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7479,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b0495c20d8f4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8519,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-08d14baaba3d",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4806,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-669898a61d3b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5443,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c4132b4089cd",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6715,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-28a6f4ac3f0d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5731,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-744b4a553ef1",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5437,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-767061669452",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7609,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-ba435d33f239",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5196,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-3aa05f84e829",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5529,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-a74178ced8a5",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7057,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0df1492a5a5f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8685,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-af40cd783d3c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9359,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-3d1e04bfaf3d",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.3986,
+      "detail": "took action 'ask_human'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b69a4c299dc3",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.7725,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-25bf402dc6ee",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8532,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-8ccf87893d62",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6535,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-49bbeaba3c0f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8572,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-849e2920855a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8983,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8712a2d871c6",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9061,
+      "detail": "took action 'wait'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "wait"
+    },
+    {
+      "id": "enron-fa09396f5b0c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7457,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-1684332436d2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8001,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8969e515beb8",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.3599,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-a1a4c5753d9a",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5381,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-5712f7d952ef",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5956,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c1730a95fb2d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9151,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-e09ec15f191e",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9138,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-daa96815d62f",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5013,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-27b4b2d29896",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8906,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-fb9f45c2a61c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6526,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-ab22cfae3558",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8032,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-025c4659c014",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5671,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-330e4f878f6c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5044,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-acaa13c2be62",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9164,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-5d69bf889dc9",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9489,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-822fac2f3c5f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9168,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-b2b4ffa65b6b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8059,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-aa869f899a5b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7216,
+      "detail": "took expected action 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-dc9308738995",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5885,
+      "detail": "took action 'no_reply'; expected 'wait'",
+      "expected_action": "wait",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-2a9c3593ff8f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5318,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-87aa798af4e2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8848,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-258c97bfb652",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.9099,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-00209623e776",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7294,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-43cda2aac935",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8819,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-87fb325b429f",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5682,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-863170e815d2",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.92,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-351aa21bf364",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.677,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-e5c9321e9c6b",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.502,
+      "detail": "took expected action 'wait'",
+      "expected_action": "wait",
+      "action": "wait"
+    },
+    {
+      "id": "enron-eb8d7c0d1821",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7928,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-507c66214a14",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.5828,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-f79dcb036f0f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8761,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c5aeba86a273",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4783,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8b8c628655d0",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8778,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-15310dad919f",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6418,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-dcf7cd79b00d",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7477,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-daec9cff8784",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7484,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-fc244dbfdfc1",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.5685,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-60a0eccc30e1",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.4729,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-d3953d460bc0",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9767,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-f4e66ab18911",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9825,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-6b7c742610ef",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8719,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-8d130d713dfa",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7974,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-58c3fd59c1ce",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9417,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-4a657fd8f6e8",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4992,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-1c9a119a023e",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6334,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-279db5c63ac8",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8766,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-0e835c8f1d33",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.507,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-ab05cc679ffb",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8073,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-a3460af9ebe3",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4872,
+      "detail": "took action 'ask_human'; expected 'no_reply'",
+      "expected_action": "no_reply",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-980fde49a73e",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8194,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-79e4eb9a2805",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.96,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-7cbf822c991a",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6442,
+      "detail": "",
+      "expected_action": "answer",
+      "action": "answer"
+    },
+    {
+      "id": "enron-ea32a1488bc4",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7361,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-ab720e217a33",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.6536,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-e1835e5f9f7c",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9041,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-dc3794efb7be",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.6853,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-21cb1cb84d88",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.3593,
+      "detail": "took action 'wait'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "wait"
+    },
+    {
+      "id": "enron-835f346d2449",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.4957,
+      "detail": "answered; expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "answer"
+    },
+    {
+      "id": "enron-d425a9c61e3e",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8378,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-17d56ac5df94",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8564,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-c67ae24cf8fc",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7666,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-fc0fd7d49c13",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.7988,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-bc8b4c372bac",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.9538,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c0b4f34284bb",
+      "group": null,
+      "passed": false,
+      "score": 0.0,
+      "confidence": 0.8866,
+      "detail": "took action 'no_reply'; expected 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "no_reply"
+    },
+    {
+      "id": "enron-b0b68be7eec9",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.912,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    },
+    {
+      "id": "enron-c813e2a0882e",
+      "group": null,
+      "passed": true,
+      "score": 1.0,
+      "confidence": 0.8242,
+      "detail": "took expected action 'ask_human'",
+      "expected_action": "ask_human",
+      "action": "ask_human"
+    }
+  ],
+  "actions": {
+    "matrix": [
+      {
+        "expected": "answer",
+        "taken": "answer",
+        "n": 7
+      },
+      {
+        "expected": "answer",
+        "taken": "ask_human",
+        "n": 3
+      },
+      {
+        "expected": "ask_human",
+        "taken": "ask_human",
+        "n": 107
+      },
+      {
+        "expected": "ask_human",
+        "taken": "answer",
+        "n": 10
+      },
+      {
+        "expected": "ask_human",
+        "taken": "no_reply",
+        "n": 38
+      },
+      {
+        "expected": "ask_human",
+        "taken": "wait",
+        "n": 4
+      },
+      {
+        "expected": "no_reply",
+        "taken": "no_reply",
+        "n": 137
+      },
+      {
+        "expected": "no_reply",
+        "taken": "answer",
+        "n": 2
+      },
+      {
+        "expected": "no_reply",
+        "taken": "ask_human",
+        "n": 7
+      },
+      {
+        "expected": "wait",
+        "taken": "wait",
+        "n": 6
+      },
+      {
+        "expected": "wait",
+        "taken": "answer",
+        "n": 1
+      },
+      {
+        "expected": "wait",
+        "taken": "ask_human",
+        "n": 3
+      },
+      {
+        "expected": "wait",
+        "taken": "no_reply",
+        "n": 4
+      }
+    ],
+    "acted_when_should_hold_back": 13,
+    "held_back_when_should_act": 3
+  }
+}
