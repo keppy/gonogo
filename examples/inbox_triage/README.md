@@ -31,17 +31,21 @@ The labels are a **reference policy written by two model families**, not decisio
 by a person: DeepSeek (`deepseek-v4-pro`) and Z.ai's GLM (`GLM-5.3`), neither of which is
 a gate under test. Both read `guidelines.md`; a message is a case only where they agree.
 Their per-message labels are in `data/labels/`. A person's blind labels on a held-back
-sample (43 eval messages, not shipped until they are read back) will give the agreement
-above chance that says how far to trust the reference.
+sample of 43 eval messages will measure agreement above chance with the reference, which
+says how far to trust it. Those labels are not shipped until they are read back.
 
 Each gate's review threshold is chosen on eval, frozen, and tested once on the holdout.
 A threshold that misses there is reported as a miss, never re-picked.
 
 ## What it found
 
-Pass rate (95% interval), holdout: 329 messages (ask_human 159, no_reply 146, wait 14,
-reply 10). Eval: 541 enriched (rare actions added from the same inboxes) and 344 natural
-(the inbox as it arrives, mostly no_reply).
+Three case sets:
+
+- holdout: 329 messages (ask_human 159, no_reply 146, wait 14, reply 10);
+- eval, enriched: 541 messages, with rare actions added from the same inboxes;
+- eval, natural: 344 messages, the inbox as it arrives (mostly no_reply).
+
+Pass rate with its 95% interval:
 
 | gate | eval enriched | eval natural | holdout | calibration error (holdout) |
 | --- | --- | --- | --- | --- |
@@ -57,16 +61,16 @@ reply 10). Eval: 541 enriched (rare actions added from the same inboxes) and 344
 | Jev | 3 | 2 | 32 |
 | encoder | 42 | 10 | 10 |
 
-On the natural eval mix the encoder and Jev tie (86.0% vs 82.6%, no detectable
-difference) with opposite failures: the encoder leaves owner messages silent, Jev
-over-escalates.
+On the natural eval mix, the paired test can't separate the encoder and Jev (86.0% vs
+82.6%, no detectable difference), and they fail in opposite ways: the encoder leaves owner
+messages silent, and Jev over-escalates.
 
 **No gate's eval threshold held on the holdout** at the 90% precision target: Claude's
 lower bound lands at 88.1%, Jev's at 86.9%, the encoder's at 85.5% (`holdout_check.py`).
 
-**Decide on cost.** Say a message the owner needed and didn't get costs 4, and an
-unneeded escalation costs 1. Then escalate whenever P(ask_human) ≥ 1/(1+4) = 0.2: the
-threshold comes from the costs, and nothing is tuned on the data. Holdout, r = 4:
+**Decide on cost.** Suppose a message the owner needed and didn't get costs 4, and an
+unneeded escalation costs 1. Then escalate whenever P(ask_human) ≥ 1/(1+4) = 0.2. The
+threshold comes from the costs; nothing is tuned on the data. Holdout, r = 4:
 
 | gate | pass rate | owner missed | cost per 100 messages |
 | --- | --- | --- | --- |
@@ -74,24 +78,28 @@ threshold comes from the costs, and nothing is tuned on the data. Holdout, r = 4
 | Jev | 76.9% [72.1, 81.1] | 0 / 159 | 23.1 |
 | encoder | 79.9% [75.3, 83.9] | 33 / 159 | 50.2 |
 
-Pass rate separates no pair (McNemar p 0.34–1.0). Cost does: the encoder costs 26 more
-per 100 messages than Claude [+12.8, +40.7] (paired bootstrap), and Claude and Jev tie
-(−0.9 [−5.5, +3.3]), at $6.71 vs $0.05 for the whole run. The gate with the best pass
-rate is the most expensive one, because its mistakes are the costly kind. (Claude reports
-only its chosen option's confidence, so its P(ask_human) is an upper bound.)
+Pass rate separates no pair (McNemar p 0.34–1.0). Cost does. The encoder costs 26 more
+per 100 messages than Claude [+12.8, +40.7] (paired bootstrap). Claude and Jev tie
+(−0.9 [−5.5, +3.3]); their API spend for the whole run, at list price, was $6.71 and
+$0.05. The gate with the best pass rate has the highest cost, because its mistakes are the
+costly kind. (Claude reports only its chosen option's confidence, so its P(ask_human) is an
+upper bound.)
 
-Other measurements in `data/reports/`: Jev's own `confidence` field is a spread
-statistic, not a probability (calibration error 0.16 against 0.08 for the probability it
-puts on its chosen option), and earlier encoder versions (`encoder-inbox-triage-v1..v3`,
-`-la` = logit-adjusted) are there for comparison.
+Other measurements:
+
+- Jev's own `confidence` field (`jev_confidence` in its cache) is a spread statistic, not a
+  probability: on eval its calibration error is 0.16, against 0.08 for the probability Jev
+  puts on its chosen option.
+- Earlier encoder versions (`encoder-inbox-triage-v1..v3`, `-la` = logit-adjusted) are in
+  `data/reports/` for comparison.
 
 ## Files
 
-- `agent.py`: the harness. The "before" log records only what it sent; the "after" trace
+- `agent.py`: the harness. The "before" log records only what it sent. The "after" trace
   makes `wait`, `ask_human` and `no_reply` tool calls, so every message leaves a row. After
-  `fetch_text.py`, `agent.py --offline --legacy` vs `agent.py --offline` replays both from
-  Claude's cache for free: 20 messages in, 1 row out, against 20 in, 20 out. (Reasons are
-  blank in the shipped cache.)
+  `fetch_text.py`, `agent.py --offline --legacy` and `agent.py --offline` replay both from
+  Claude's cache at no cost: 20 messages in and 1 row out, against 20 in and 20 out.
+  (Reasons are blank in the shipped cache.)
 - `gates.py`: the three gates and their cache; `guidelines.md`: the policy every gate
   and labeler reads (the cache file names carry its hash).
 - `run_gate.py`: grade a gate with gonogo and save the report; `holdout_check.py`,
@@ -101,5 +109,5 @@ puts on its chosen option), and earlier encoder versions (`encoder-inbox-triage-
   probabilities; reasons and drafts are left out, since they quote the emails.
 - `fetch_text.py`: rebuilds the email text from CMU's public Enron release
   (`enron_mail_20150507.tar.gz`, https://www.cs.cmu.edu/~enron/) into
-  `data/messages.jsonl`, which live runs (paid) and `agent.py` read. It is the FERC public
-  release; CMU asks users to respect the privacy of the people in it.
+  `data/messages.jsonl`, which live runs (paid) and `agent.py` read. This is the FERC public
+  release. CMU asks users to respect the privacy of the people in it.
