@@ -4,10 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-10-23
 
 ### Added
 
+- **`gonogo 47/50 --target 0.9`**, a console script (also `python -m gonogo`):
+  the verdict, the interval and, for INSUFFICIENT EVIDENCE, how many cases the
+  claim needs at the observed rate. Stdlib `argparse`; still no runtime
+  dependencies.
+- `decide_counts(passed, total, target=..., level=...)`: `decide` from a pass
+  count, for when there are no per-case results yet.
 - **Expected actions.** `Case.expected_action` (default `"answer"`) says the
   correct behaviour for a case is not to answer: `"abstain"`, `"ask"`,
   `"wait"`, or any other name. Such a case passes only if

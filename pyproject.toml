@@ -28,6 +28,10 @@ dev = ["pytest>=7"]
 # dependency-free, and scoring.judge takes any complete(prompt) -> str callable.
 agent = ["anthropic>=0.69"]
 
+[project.scripts]
+# stdlib argparse only: the library stays dependency-free.
+gonogo = "gonogo.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/keppy/gonogo"
 Source = "https://github.com/keppy/gonogo"

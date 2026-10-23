@@ -24,6 +24,18 @@ Installs as `gonogo-eval` (the plain `gonogo` name on PyPI belongs to an unrelat
 
 ## Try it
 
+No cases needed, just a count you already have:
+
+```
+$ gonogo 47/50 --target 0.9
+INSUFFICIENT EVIDENCE
+observed 94.0% on 50 cases is above the 90% target, but the 95% interval reaches down to 83.8%
+47/50 looks like 94%; you'd need about 204 cases at this rate to claim 90%.
+```
+
+The same from Python is `gonogo.decide_counts(47, 50, target=0.90)`. With per-case
+results you get more: a review threshold, calibration, and the actions table.
+
 ```bash
 python examples/invoice_extraction.py
 ```

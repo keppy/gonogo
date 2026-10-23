@@ -180,3 +180,20 @@ def decide(
                 f"for automation as currently scoped"),
         pass_rate=rate, target=target, calibration_error=ece, notes=notes,
     )
+
+
+def decide_counts(passed: int, total: int, target: float = 0.95, level: float = 0.95,
+                  unit: str = "cases") -> Decision:
+    """`decide` from a count: `decide_counts(47, 50, target=0.90)`.
+
+    For when all you have is "47 out of 50 passed". With no per-case confidence
+    there is no review threshold to find, so the verdict is AUTOMATE,
+    INSUFFICIENT EVIDENCE (with `needed_n`), ASSIST ONLY or DO NOT AUTOMATE.
+    """
+    if isinstance(passed, bool) or isinstance(total, bool) or not (
+            isinstance(passed, int) and isinstance(total, int)):
+        raise TypeError("passed and total must be integers")
+    if total < 1 or not 0 <= passed <= total:
+        raise ValueError(f"need total >= 1 and 0 <= passed <= total, got {passed}/{total}")
+    return decide([(1.0, True)] * passed + [(1.0, False)] * (total - passed),
+                  target=target, level=level, unit=unit)
