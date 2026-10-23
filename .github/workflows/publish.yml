@@ -1,0 +1,44 @@
+# Publish to PyPI with Trusted Publishing, so every release file carries a PyPI
+# publish attestation (provenance: this repo, this workflow, this commit).
+# https://docs.pypi.org/trusted-publishers/  https://docs.pypi.org/attestations/
+#
+# One-time setup on pypi.org (project gonogo-eval > Settings > Publishing):
+#   owner keppy, repository gonogo, workflow publish.yml, environment pypi.
+# Then a pushed tag v<version> builds, tests and publishes. No token anywhere.
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: tag matches the package version
+        run: |
+          v=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' gonogo/__init__.py)
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != __version__ $v"; exit 1; }
+      - name: tests
+        run: uv run --with pytest python -m pytest -q
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # Trusted Publishing + attestation signing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      # Attestations are generated and uploaded by default.
+      - uses: pypa/gh-action-pypi-publish@release/v1
