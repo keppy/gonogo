@@ -28,6 +28,7 @@ from pathlib import Path
 
 from gonogo import Case, Prediction, evaluate
 from gonogo.scoring import exact
+from gonogo.style import paint
 
 BASE = "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/master/banking_data"
 CACHE = Path(__file__).parent / "data"
@@ -132,7 +133,7 @@ def main() -> None:
         task="Route customer message to the right queue",
         target=0.95,
     )
-    print(report.markdown())
+    print(paint(report.markdown(), target=report.decision.target))
 
     out = Path(__file__).parent / "banking77_report.html"
     out.write_text(report.html(), encoding="utf-8")

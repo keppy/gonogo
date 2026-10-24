@@ -7,6 +7,7 @@ import re
 import sys
 
 from .decide import Verdict, decide_counts
+from .style import paint
 
 
 def _fraction(text: str) -> tuple[int, int]:
@@ -51,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--version", action="version", version=f"gonogo-eval {_version()}")
     args = ap.parse_args(argv)
     passed, total = args.counts
-    print(format_counts(passed, total, target=args.target, level=args.level))
+    print(paint(format_counts(passed, total, target=args.target, level=args.level), target=args.target))
     return 0
 
 

@@ -27,6 +27,7 @@ import random
 from pathlib import Path
 
 from gonogo import Case, Prediction, compare, evaluate
+from gonogo.style import paint
 from run_gate import LABEL_SOURCE, decided, load_cases
 
 HERE = Path(__file__).resolve().parent
@@ -111,9 +112,9 @@ def main() -> None:
             payload, row = run(g, args.split, args.mix, r, args.target)
             reports[g], costs[g] = payload, row["per_case"]
             pr = payload["pass_rate"]
-            print(f"{g:26} {pr['point']:.1%} [{pr['low']:.1%}, {pr['high']:.1%}]   {row['owner_missed']:>12} "
-                  f"{row['replied_instead']:>9} {row['over']:>8} {row['other']:>5} {row['owner_load']:>8} "
-                  f"{row['cost_per_100']:>8.1f}  {row['verdict']}")
+            print(paint(f"{g:26} {pr['point']:.1%} [{pr['low']:.1%}, {pr['high']:.1%}]   {row['owner_missed']:>12} "
+                        f"{row['replied_instead']:>9} {row['over']:>8} {row['other']:>5} {row['owner_load']:>8} "
+                        f"{row['cost_per_100']:>8.1f}  {row['verdict']}", target=args.target))
         for a, b in itertools.combinations(GATES, 2):
             lines = compare(reports[a], reports[b]).summary().splitlines()
             keep = [l.split(None, 1)[1].strip() for l in lines if l.startswith(("Difference", "McNemar", "Verdict"))]

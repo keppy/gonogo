@@ -26,6 +26,10 @@ observed 94.0% on 50 cases is above the 90% target, but the 95% interval reaches
 From Python: `gonogo.decide_counts(47, 50, target=0.90)`. Per-case results add a review
 threshold, calibration and the actions table.
 
+On a terminal the output is colored: green is good, yellow is a hazard, red is poor. Here
+the verdict is yellow and the 83.8% is red. `NO_COLOR=1` turns colors off. To color your
+own output, use `gonogo.style.paint(report.summary(), target=report.decision.target)`.
+
 ## Grade what your agent didn't do
 
 <a id="when-the-right-move-is-not-to-answer"></a>

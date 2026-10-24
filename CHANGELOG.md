@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-10-24
+
+### Added
+
+- **Colors on a terminal.** The `gonogo` CLI and the examples color what matters: green is
+  good, yellow is a hazard, red is poor. An interval like `78.1% [73.3%, 82.2%]` is green
+  when its lower bound clears the target, yellow when only the point does, red when the
+  point misses. Verdicts are colored too (AUTOMATE green; AUTOMATE WITH REVIEW, ASSIST ONLY
+  and INSUFFICIENT EVIDENCE yellow; DO NOT AUTOMATE red).
+- `gonogo.style.paint(text, target=...)` and `gonogo.style.color(text, tone)` for your own
+  scripts: `print(paint(report.summary(), target=report.decision.target))`.
+
+Colors appear only on a terminal; pipes, files and logs stay plain. `NO_COLOR` turns them
+off and `FORCE_COLOR` forces them on. `summary()`, `markdown()`, `html()` and `to_dict()`
+are byte-for-byte unchanged, and there are still no runtime dependencies.
+
 ## [0.4.0] - 2026-10-23
 
 ### Added

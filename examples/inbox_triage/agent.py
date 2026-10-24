@@ -20,6 +20,8 @@ import json
 import time
 from pathlib import Path
 
+from gonogo.style import color
+
 from gates import ACTIONS, Decision
 
 HERE = Path(__file__).resolve().parent
@@ -76,10 +78,11 @@ def main() -> None:
     for r in rows:
         h.handle(r)
     n_rows = sum(1 for _ in trace.open()) if trace.exists() else 0
-    print(f"{len(rows)} messages in, {n_rows} trace rows out -> {trace}")
+    print(f"{len(rows)} messages in, {color(f'{n_rows} trace rows out', 'good' if n_rows == len(rows) else 'poor')}"
+          f" {color(f'-> {trace}', 'dim')}")
     if args.legacy:
-        print(f"{len(rows) - n_rows} messages left no row: from this log, a correct silence and a "
-              "missed reply look the same")
+        print(color(f"{len(rows) - n_rows} messages left no row", "hazard") + ": from this log, a correct "
+              "silence and a missed reply look the same")
 
 
 if __name__ == "__main__":

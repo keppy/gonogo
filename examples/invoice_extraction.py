@@ -16,6 +16,7 @@ import zlib
 
 from gonogo import Case, Prediction, evaluate
 from gonogo.scoring import fields
+from gonogo.style import paint
 
 VENDORS = ["Acme Supply", "Northwind Freight", "Globex Paper", "Initech Legal", "Umbrella Labs"]
 
@@ -76,7 +77,7 @@ def main() -> None:
         task="Extract fields from invoice",
         target=0.95,
     )
-    print(report.markdown())
+    print(paint(report.markdown(), target=report.decision.target))
 
 
 if __name__ == "__main__":

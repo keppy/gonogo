@@ -26,6 +26,7 @@ import os
 
 from gonogo import Case, Prediction, evaluate
 from gonogo.scoring import exact
+from gonogo.style import paint
 
 from banking77_routing import PILOT_SIZE, SEED, fetch
 
@@ -134,7 +135,7 @@ def main() -> None:
         target=args.target,
         workers=WORKERS,
     )
-    print(report.markdown())
+    print(paint(report.markdown(), target=report.decision.target))
 
     here = os.path.dirname(__file__)
     out = os.path.join(here, "banking77_claude_report.html")

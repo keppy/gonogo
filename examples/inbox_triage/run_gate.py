@@ -28,6 +28,7 @@ import random
 from pathlib import Path
 
 from gonogo import Case, Prediction, evaluate
+from gonogo.style import color, paint
 
 from gates import (ACTIONS, CLAUDE_PRICES, JEV_PRICE_IN, ClaudeGate, EncoderGate, JevGate, api_key,
                    load_messages, message_text)
@@ -150,12 +151,13 @@ def main() -> None:
     # not with_suffix: "jev-1.14.0-eval-enriched" would lose ".0-eval-enriched" as a suffix
     Path(f"{out}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     Path(f"{out}.html").write_text(report.html(), encoding="utf-8")
-    print(report.summary())
+    print(paint(report.summary(), target=report.decision.target))
     a = report.actions()
-    print(f"acted when it should have held back: {a['acted_when_should_hold_back']}; "
-          f"held back when it should have acted: {a['held_back_when_should_act']}; "
-          f"errors: {len(report.errors)}")
-    print(f"report: {out}.json / .html; spend so far on {gate.name}: ${gate.spent():.2f} at list price")
+    tone = lambda n: "good" if n == 0 else "hazard"  # noqa: E731
+    print(f"acted when it should have held back: {color(str(a['acted_when_should_hold_back']), tone(a['acted_when_should_hold_back']))}; "
+          f"held back when it should have acted: {color(str(a['held_back_when_should_act']), tone(a['held_back_when_should_act']))}; "
+          f"errors: {color(str(len(report.errors)), 'good' if not report.errors else 'poor')}")
+    print(color(f"report: {out}.json / .html; spend so far on {gate.name}: ${gate.spent():.2f} at list price", "dim"))
 
 
 if __name__ == "__main__":
