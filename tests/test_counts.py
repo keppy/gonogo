@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from gonogo import Verdict, decide, decide_counts
@@ -56,3 +58,32 @@ class TestCli:
         with pytest.raises(SystemExit) as exc:
             main(["47/50", "--target", target])
         assert exc.value.code == 2
+
+    def test_json_prints_one_valid_json_object(self, capsys):
+        assert main(["47/50", "--target", "0.9", "--json"]) == 0
+        data = json.loads(capsys.readouterr().out.strip())
+        d = decide_counts(47, 50, target=0.90)
+        assert data["verdict"] == "INSUFFICIENT EVIDENCE"
+        assert data["can_automate"] is False
+        assert data["passed"] == 47
+        assert data["total"] == 50
+        assert data["pass_rate"]["point"] == pytest.approx(d.pass_rate.point)
+        assert data["pass_rate"]["low"] == pytest.approx(d.pass_rate.low)
+        assert data["pass_rate"]["high"] == pytest.approx(d.pass_rate.high)
+        assert data["target"] == 0.9
+        assert data["needed_n"] == d.needed_n
+        # A count has no per-case confidence, so this must be null, not NaN.
+        assert data["calibration_error"] is None
+
+    def test_json_automate_when_the_count_clears_the_bar(self, capsys):
+        assert main(["400/400", "--target", "0.95", "--json"]) == 0
+        data = json.loads(capsys.readouterr().out.strip())
+        assert data["verdict"] == "AUTOMATE"
+        assert data["can_automate"] is True
+        assert data["needed_n"] is None
+
+    def test_json_never_colored(self, capsys):
+        # JSON output must stay machine-readable even with FORCE_COLOR set.
+        assert main(["47/50", "--target", "0.9", "--json"]) == 0
+        out = capsys.readouterr().out
+        assert "\x1b[" not in out

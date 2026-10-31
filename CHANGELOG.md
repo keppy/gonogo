@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-10-31
+
+### Added
+
+- **`--json` on the `gonogo` CLI.** `gonogo 47/50 --target 0.9 --json` prints the
+  decision as one JSON object instead of the colored text card, so a non-Python client
+  (a TypeScript service, a shell pipeline) can read the verdict without parsing prose.
+  The object mirrors the decision fields of `Report.to_dict()` — `verdict`,
+  `can_automate`, `reason`, `passed`/`total`, `pass_rate` (`point`/`low`/`high`/`level`),
+  `target`, `calibration_error` (`null` for a count, never `NaN`), `needed_n`, `notes`.
+  The text output is byte-for-byte unchanged.
+
 ## [0.4.1] - 2026-10-24
 
 ### Added

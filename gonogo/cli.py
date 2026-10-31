@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import json
+import math
 import re
 import sys
 
-from .decide import Verdict, decide_counts
+from .decide import Decision, Verdict, decide_counts
 from .style import paint
 
 
@@ -39,6 +41,39 @@ def format_counts(passed: int, total: int, target: float = 0.95, level: float = 
     return "\n".join(lines)
 
 
+def _decision_json(d: Decision, passed: int, total: int) -> dict:
+    """The decision as one JSON object, for a script or a non-Python client.
+
+    Mirrors the decision fields of `Report.to_dict()` so a consumer that reads a
+    score report sees the same shape here; the count has no per-case outcomes,
+    so `passed`/`total` stand in for `cases`. `calibration_error` is `null` for
+    a count (there is no per-case confidence to calibrate).
+    """
+    return {
+        "verdict": d.verdict.value,
+        "can_automate": d.can_automate,
+        "reason": d.reason,
+        "passed": passed,
+        "total": total,
+        "unit": d.unit,
+        "pass_rate": {
+            "point": d.pass_rate.point,
+            "low": d.pass_rate.low,
+            "high": d.pass_rate.high,
+            "level": d.pass_rate.level,
+        },
+        "target": d.target,
+        "calibration_error": _finite(d.calibration_error),
+        "needed_n": d.needed_n,
+        "notes": d.notes,
+    }
+
+
+def _finite(value: float) -> float | None:
+    """Non-finite floats (NaN) are not valid JSON; emit `null` instead."""
+    return None if isinstance(value, float) and not math.isfinite(value) else value
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="gonogo",
@@ -50,9 +85,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--level", type=_probability, default=0.95,
                     help="confidence level of the interval (default 0.95)")
     ap.add_argument("--version", action="version", version=f"gonogo-eval {_version()}")
+    ap.add_argument("--json", action="store_true",
+                    help="print the decision as one JSON object (scripts, non-Python clients)")
     args = ap.parse_args(argv)
     passed, total = args.counts
-    print(paint(format_counts(passed, total, target=args.target, level=args.level), target=args.target))
+    if args.json:
+        d = decide_counts(passed, total, target=args.target, level=args.level)
+        print(json.dumps(_decision_json(d, passed, total)))
+    else:
+        print(paint(format_counts(passed, total, target=args.target, level=args.level),
+                    target=args.target))
     return 0
 
 
