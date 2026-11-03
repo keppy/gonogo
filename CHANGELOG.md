@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-11-03
+
+### Changed
+
+- **The HTML score report colors by target, matching the terminal.** The pass rate in
+  `Report.html()` is green when its lower bound clears the target, yellow when only the
+  point does, and red when the point misses, with the bracketed interval dimmed. Verdict
+  accents match `gonogo.style`: AUTOMATE WITH REVIEW and INSUFFICIENT EVIDENCE are yellow
+  (were green/gray), and the actions table's count column carries the row's ok/under flag.
+  Numbers, structure, and the machine-readable outputs (`to_dict()`, `summary()`,
+  `markdown()`, `--json`) are unchanged.
+
 ## [0.4.2] - 2026-10-31
 
 ### Added

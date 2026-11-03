@@ -256,6 +256,21 @@ class Report:
 
         return "\n".join(out).rstrip() + "\n"
 
+    def _rate_html(self) -> str:
+        """The pass rate colored by target, matching the terminal: green when the lower
+        bound clears the target, yellow when only the point does, red when the point
+        misses; the bracketed interval is dimmed via the ``gng-ci`` class."""
+        d = self.decision
+        pr = d.pass_rate
+        if pr.point < d.target:
+            tone = "poor"
+        elif pr.low >= d.target:
+            tone = "good"
+        else:
+            tone = "hazard"
+        return (f'<span class="gng-rate gng-{tone}">{pr.point:.1%} '
+                f'<span class="gng-ci">[{pr.low:.1%}, {pr.high:.1%}]</span></span>')
+
     def html(self, standalone: bool = True, show_failures: int = 5) -> str:
         """A self-contained HTML score report.
 
@@ -278,14 +293,15 @@ class Report:
         rows.append(f'<p class="gng-reason">{e(d.reason[:1].upper() + d.reason[1:])}.</p>')
 
         rows.append('<dl class="gng-facts">')
+        rate_html = self._rate_html()
         if self.grouped:
             facts = [("Groups evaluated", str(d.n_groups)),
                      ("Groups where every case passed", str(self.n_groups_passed())),
                      ("Cases (context, not trials)", f"{self.n_passed} of {self.n} passed"),
-                     ("Pass rate", str(d.pass_rate)), ("Target", f"{d.target:.0%}")]
+                     ("Pass rate", rate_html), ("Target", f"{d.target:.0%}")]
         else:
             facts = [("Cases evaluated", str(self.n)), ("Passed", str(self.n_passed)),
-                     ("Pass rate", str(d.pass_rate)), ("Target", f"{d.target:.0%}")]
+                     ("Pass rate", rate_html), ("Target", f"{d.target:.0%}")]
         if d.calibration_error == d.calibration_error:
             usable = "well calibrated" if d.calibration_error <= 0.15 else "ranks cases, scale unreliable"
             facts.append(("Calibration error", f"{d.calibration_error:.2f} ({usable})"))
@@ -294,7 +310,8 @@ class Report:
         if d.needed_n:
             facts.append(("Cases needed for the claim", f"~{d.needed_n}"))
         for label, value in facts:
-            rows.append(f'<div><dt>{e(label)}</dt><dd>{e(value)}</dd></div>')
+            shown = value if label == "Pass rate" else e(value)
+            rows.append(f'<div><dt>{e(label)}</dt><dd>{shown}</dd></div>')
         rows.append('</dl>')
 
         if self.grouped:
@@ -317,7 +334,8 @@ class Report:
             for row in acts["matrix"]:
                 flag = "ok" if row["expected"] == row["taken"] else "under"
                 rows.append(f'<tr><td>{e(row["expected"])}</td>'
-                            f'<td class="gng-{flag}">{e(row["taken"])}</td><td>{row["n"]}</td></tr>')
+                            f'<td class="gng-{flag}">{e(row["taken"])}</td>'
+                            f'<td class="gng-{flag}">{row["n"]}</td></tr>')
             rows.append('</tbody></table>')
             rows.append(f'<p class="gng-note">Acted when it should have held back: '
                         f'{acts["acted_when_should_hold_back"]}. Held back when it should have '
@@ -482,6 +500,7 @@ GNG_CSS = """
   --gng-wash: #f8fafc;
   --gng-ok: #0f766e;
   --gng-under: #b45309;
+  --gng-poor: #9f1239;
   --gng-accent: var(--gng-ok);
   max-width: 44rem;
   margin: 0 auto;
@@ -493,10 +512,10 @@ GNG_CSS = """
   font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 .gng[data-verdict="automate"] { --gng-accent: #0f766e; }
-.gng[data-verdict="automate-with-review"] { --gng-accent: #0f766e; }
+.gng[data-verdict="automate-with-review"] { --gng-accent: #b45309; }
 .gng[data-verdict="assist-only"] { --gng-accent: #b45309; }
 .gng[data-verdict="do-not-automate"] { --gng-accent: #9f1239; }
-.gng[data-verdict="insufficient-evidence"] { --gng-accent: #4b5563; }
+.gng[data-verdict="insufficient-evidence"] { --gng-accent: #b45309; }
 .gng-head { padding-left: .75rem; border-left: 3px solid var(--gng-accent); }
 .gng-task { margin: 0; color: var(--gng-muted); font-size: .72rem; font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase; }
@@ -530,6 +549,9 @@ GNG_CSS = """
 .gng-ci { color: var(--gng-muted); font-size: .75rem; }
 .gng-ok { color: var(--gng-ok); }
 .gng-under { color: var(--gng-under); }
+.gng-rate.gng-good { color: var(--gng-ok); }
+.gng-rate.gng-hazard { color: var(--gng-under); }
+.gng-rate.gng-poor { color: var(--gng-poor); }
 .gng-bar { display: inline-block; width: 2.75rem; height: .35rem; margin-right: .45rem;
   overflow: hidden; border-radius: 999px; background: rgba(17,24,39,.12);
   vertical-align: middle; }
@@ -545,7 +567,7 @@ GNG_CSS = """
 @media (prefers-color-scheme: dark) {
   .gng:not([data-theme]) {
     --gng-ink: #e5e7eb; --gng-muted: #9ca3af; --gng-border: #374151; --gng-wash: #111827;
-    --gng-ok: #5eead4; --gng-under: #fbbf24;
+    --gng-ok: #5eead4; --gng-under: #fbbf24; --gng-poor: #fda4af;
     background: #0b1220;
   }
 }
