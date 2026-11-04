@@ -73,12 +73,52 @@ class Comparison:
     def discordant(self) -> int:
         return self.only_a + self.only_b
 
+    @property
+    def verdict(self) -> str:
+        """`distinguishable`, `borderline` or `not distinguishable`."""
+        return ("distinguishable" if self.significant
+                else "borderline" if self.borderline else "not distinguishable")
+
+    @property
+    def better(self) -> str | None:
+        """Which agent is better, `"A"` or `"B"`, when the verdict is distinguishable."""
+        if not self.significant:
+            return None
+        return "B" if self.difference > 0 else "A"
+
     def __str__(self) -> str:
-        verdict = ("distinguishable" if self.significant
-                   else "borderline" if self.borderline else "not distinguishable")
         return (f"{self.rate_b:.1%} vs {self.rate_a:.1%} "
                 f"({self.difference:+.1%} [{self.low:+.1%}, {self.high:+.1%}], "
-                f"p={self.p_value:.3f}) — {verdict} on {self.n_shared} shared {self.unit}")
+                f"p={self.p_value:.3f}) — {self.verdict} on {self.n_shared} shared {self.unit}")
+
+    def to_dict(self) -> dict:
+        """The comparison as one JSON object (`gonogo compare --json`).
+
+        Every field is finite, so a strict JSON encoder takes it as is.
+        """
+        return {
+            "n_shared": self.n_shared,
+            "unit": self.unit,
+            "both_passed": self.both_passed,
+            "both_failed": self.both_failed,
+            "only_a": self.only_a,
+            "only_b": self.only_b,
+            "discordant": self.discordant,
+            "rate_a": self.rate_a,
+            "rate_b": self.rate_b,
+            "difference": self.difference,
+            "low": self.low,
+            "high": self.high,
+            "level": self.level,
+            "p_value": self.p_value,
+            "exact": self.exact,
+            "test_significant": self.test_significant,
+            "interval_excludes_zero": self.interval_excludes_zero,
+            "significant": self.significant,
+            "borderline": self.borderline,
+            "verdict": self.verdict,
+            "better": self.better,
+        }
 
     def summary(self) -> str:
         """A few lines suitable for dropping into a report."""
@@ -94,8 +134,7 @@ class Comparison:
             f"{'' if self.exact else ' (chi-square approximation)'}",
         ]
         if self.significant:
-            better = "B" if self.difference > 0 else "A"
-            lines.append(f"Verdict             agent {better} is better on these {self.unit}")
+            lines.append(f"Verdict             agent {self.better} is better on these {self.unit}")
         elif self.borderline:
             lines.append(f"Verdict             borderline; McNemar p and the {self.level:.0%} "
                          "interval disagree, so not established; more shared "

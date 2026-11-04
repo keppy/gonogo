@@ -28,6 +28,27 @@ def _check_action(value: Any, name: str) -> str:
     return value
 
 
+def read_jsonl_rows(path: str | Path) -> Iterator[tuple[int, dict]]:
+    """Yield (line number, object) for each JSON object line; blank and `//` lines skipped.
+
+    Shared by `Case.from_jsonl` and `results_from_jsonl`, so both files take
+    the same comments and raise the same `path:line` errors.
+    """
+    path = Path(path)
+    with path.open(encoding="utf-8") as fh:
+        for lineno, line in enumerate(fh, 1):
+            line = line.strip()
+            if not line or line.startswith("//"):
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{path}:{lineno}: invalid JSON: {exc}") from exc
+            if not isinstance(row, dict):
+                raise ValueError(f"{path}:{lineno}: each line must be a JSON object")
+            yield lineno, row
+
+
 @dataclass
 class Case:
     """One real case: an input, the expected output, and whatever context helps."""
@@ -63,34 +84,24 @@ class Case:
         """
         path = Path(path)
         cases: list[Case] = []
-        with path.open(encoding="utf-8") as fh:
-            for lineno, line in enumerate(fh, 1):
-                line = line.strip()
-                if not line or line.startswith("//"):
-                    continue
-                try:
-                    row = json.loads(line)
-                except json.JSONDecodeError as exc:
-                    raise ValueError(f"{path}:{lineno}: invalid JSON: {exc}") from exc
-                if not isinstance(row, dict):
-                    raise ValueError(f"{path}:{lineno}: each line must be a JSON object")
-                for required in ("input", "expected"):
-                    if required not in row:
-                        raise ValueError(f"{path}:{lineno}: missing required key {required!r}")
-                group = row.get("group")
-                action = row.get("expected_action", ANSWER)
-                try:
-                    _check_action(action, "expected_action")
-                except ValueError as exc:
-                    raise ValueError(f"{path}:{lineno}: {exc}") from exc
-                cases.append(cls(
-                    input=row["input"],
-                    expected=row["expected"],
-                    id=row.get("id") or f"case-{lineno}",
-                    metadata={k: v for k, v in row.items() if k not in _RESERVED},
-                    group=None if group is None else str(group),
-                    expected_action=action,
-                ))
+        for lineno, row in read_jsonl_rows(path):
+            for required in ("input", "expected"):
+                if required not in row:
+                    raise ValueError(f"{path}:{lineno}: missing required key {required!r}")
+            group = row.get("group")
+            action = row.get("expected_action", ANSWER)
+            try:
+                _check_action(action, "expected_action")
+            except ValueError as exc:
+                raise ValueError(f"{path}:{lineno}: {exc}") from exc
+            cases.append(cls(
+                input=row["input"],
+                expected=row["expected"],
+                id=row.get("id") or f"case-{lineno}",
+                metadata={k: v for k, v in row.items() if k not in _RESERVED},
+                group=None if group is None else str(group),
+                expected_action=action,
+            ))
         if not cases:
             raise ValueError(f"{path}: no cases found")
         return cases

@@ -318,6 +318,24 @@ A 4.4-point gain would headline a slide. The paired test says this sample can't 
 
 `report.markdown()` for a terminal or a PR comment; `report.html()` for a self-contained styled page with no external assets, to hand to whoever signs off; `report.to_dict()` for JSON, including per-case outcomes so runs can be paired and compared later.
 
+## From the shell, or another language
+
+Three verbs, each with `--json`, so a harness that is not Python reads an object and
+never parses prose:
+
+```bash
+gonogo 47/50 --target 0.9 --json              # a count: the decision object
+gonogo decide results.jsonl --target 0.9 --json   # per-case results: Report.to_dict()
+gonogo compare last-week.json today.json --json   # two saved reports: the paired comparison
+```
+
+`results.jsonl` is one object per line with `passed` and, optionally, `id`, `confidence`,
+`expected_action`, `action`, `group`, `score` and `detail`. The rules `evaluate` applies after
+scoring apply here too, and a `passed` that contradicts them is refused with its line number.
+`decide --json` writes what `compare` reads, so a run scored in one language can be paired
+against a run scored in another. From Python the same path is
+`report_from_results(results_from_jsonl(path))`, which is where `evaluate` ends as well.
+
 ## One loop, three libraries
 
 <a id="works-with"></a>

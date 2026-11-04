@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-11-04
+
+### Added
+
+- **`gonogo decide RESULTS.jsonl`** — the verdict for per-case results scored somewhere else,
+  one JSON object per line (`passed`, and optionally `id`, `confidence`, `expected_action`,
+  `action`, `group`, `score`, `detail`). It takes the decision path `evaluate` takes, now
+  factored out as `report_from_results(results)`, with `results_from_jsonl(path)` as the
+  loader; the rules evaluate applies after scoring (a non-answer action is graded against
+  `expected_action`, an abstention on an answer case defers at confidence 0.0, any other
+  non-answer on an answer case fails) hold here, and a `passed` that contradicts them is
+  refused with its line number. `--json` prints `Report.to_dict()`, per-case outcomes
+  included, which is what `compare` reads. `--group-rule all`, `--min-coverage`, `--task`.
+- **`gonogo compare A.json B.json`** — the paired comparison of two saved reports on their
+  shared case (or group) ids, in text or `--json`. `Comparison.to_dict()` is the object:
+  the counts, the difference and its interval, `p_value`, `verdict` (`distinguishable`,
+  `borderline`, `not distinguishable`) and `better` (`"A"`, `"B"` or `null`).
+  `Comparison.verdict` and `Comparison.better` are new properties; `__str__` and
+  `summary()` are unchanged.
+- `Case.from_jsonl` and `results_from_jsonl` share one line reader (`read_jsonl_rows`),
+  so both files take `//` comments and blank lines and raise the same `path:line` errors.
+
+The `gonogo 47/50` text and `--json` outputs are byte-for-byte unchanged.
+
 ## [0.4.3] - 2026-11-03
 
 ### Changed

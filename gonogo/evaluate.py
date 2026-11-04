@@ -60,8 +60,7 @@ def evaluate(
     """
     if not cases:
         raise ValueError("no cases to evaluate")
-    if group_rule not in GROUP_RULES:
-        raise ValueError(f"group_rule must be one of {GROUP_RULES}, got {group_rule!r}")
+    _check_group_rule(group_rule)  # before the agent runs, not after
     score = _adapt_scorer(scorer or exact())
 
     if workers > 1:
@@ -117,6 +116,31 @@ def evaluate(
             continue
         results.append(CaseResult(case, pred, passed=passed, score=value, detail=detail))
 
+    metadata = {"scorer": getattr(scorer, "__qualname__", repr(scorer))}
+    return report_from_results(results, task=task, target=target, level=level,
+                               min_coverage=min_coverage, group_rule=group_rule,
+                               metadata=metadata)
+
+
+def report_from_results(
+    results: list[CaseResult],
+    task: str = "task",
+    target: float = 0.95,
+    level: float = 0.95,
+    min_coverage: float = MIN_USEFUL_COVERAGE,
+    group_rule: str = "none",
+    metadata: dict[str, Any] | None = None,
+) -> Report:
+    """Decide from results that are already scored.
+
+    `evaluate` ends here. So does a run scored somewhere else -- a harness in
+    another language, or one that scores as it goes -- loaded with
+    `results_from_jsonl`, so there is one decision path, not two.
+    """
+    if not results:
+        raise ValueError("no results to decide on")
+    _check_group_rule(group_rule)
+
     # Compare only agent-supplied scores. Abstentions on answer cases
     # synthesize 0 and crashes may synthesize 1 for thresholding; neither
     # turns a confidence-free run into a partially scored one.
@@ -129,7 +153,7 @@ def evaluate(
         for r in results:
             if r.prediction.error and r.prediction.confidence is None:
                 r.prediction.confidence = 1.0
-    metadata = {"scorer": getattr(scorer, "__qualname__", repr(scorer)), "group_rule": group_rule}
+    metadata = {**(metadata or {}), "group_rule": group_rule}
 
     if group_rule == "none":
         decision = decide(
@@ -143,6 +167,11 @@ def evaluate(
     decision = decide(trials, target=target, level=level, min_coverage=min_coverage, unit="groups")
     decision.n_groups = len(groups)
     return Report(task=task, results=results, decision=decision, metadata=metadata)
+
+
+def _check_group_rule(group_rule: str) -> None:
+    if group_rule not in GROUP_RULES:
+        raise ValueError(f"group_rule must be one of {GROUP_RULES}, got {group_rule!r}")
 
 
 def group_results(results: list[CaseResult]) -> dict[str, list[CaseResult]]:
