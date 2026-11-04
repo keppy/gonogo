@@ -119,7 +119,7 @@ def _verb_main(argv: list[str]) -> int:
 
     dp = sub.add_parser("decide", help="the verdict for per-case results in a JSONL file",
                         description="One JSON object per line: passed (true/false), and optionally id, "
-                                    "confidence, expected_action, action, group, score, detail.")
+                                    "confidence, expected_action, action, group, score, detail, error.")
     dp.add_argument("results", metavar="RESULTS.jsonl")
     dp.add_argument("--target", type=_probability, default=0.95, help="pass rate to claim (default 0.95)")
     dp.add_argument("--level", type=_probability, default=0.95, help="interval confidence level (default 0.95)")

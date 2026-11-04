@@ -7,7 +7,7 @@ import inspect
 from typing import Any, Callable
 
 from .cases import ABSTAIN, ANSWER, Case, CaseResult, Prediction, answered
-from .decide import MIN_USEFUL_COVERAGE, decide
+from .decide import MIN_USEFUL_COVERAGE, Decision, Verdict, decide
 from .report import Report
 from .scoring import Score, Scorer, exact
 
@@ -136,6 +136,10 @@ def report_from_results(
     `evaluate` ends here. So does a run scored somewhere else -- a harness in
     another language, or one that scores as it goes -- loaded with
     `results_from_jsonl`, so there is one decision path, not two.
+
+    When every case errored the verdict is INSUFFICIENT EVIDENCE with no
+    `needed_n`: the run measured the harness, not the agent. When some did, a
+    note says how many.
     """
     if not results:
         raise ValueError("no results to decide on")
@@ -155,17 +159,28 @@ def report_from_results(
                 r.prediction.confidence = 1.0
     metadata = {**(metadata or {}), "group_rule": group_rule}
 
-    if group_rule == "none":
-        decision = decide(
-            [(r.confidence, r.passed) for r in results],
-            target=target, level=level, min_coverage=min_coverage,
-        )
-        return Report(task=task, results=results, decision=decision, metadata=metadata)
+    groups = group_results(results) if group_rule != "none" else None
+    if groups is None:
+        trials = [(r.confidence, r.passed) for r in results]
+    else:
+        trials = [(min(r.confidence for r in rs), all(r.passed for r in rs)) for rs in groups.values()]
+    unit = "cases" if groups is None else "groups"
 
-    groups = group_results(results)
-    trials = [(min(r.confidence for r in rs), all(r.passed for r in rs)) for rs in groups.values()]
-    decision = decide(trials, target=target, level=level, min_coverage=min_coverage, unit="groups")
-    decision.n_groups = len(groups)
+    decision = decide(trials, target=target, level=level, min_coverage=min_coverage, unit=unit)
+    errored = sum(1 for r in results if r.prediction.error)
+    if errored == len(results):
+        # A pass rate of zero here is the harness breaking, not the agent failing.
+        decision = Decision(
+            verdict=Verdict.INSUFFICIENT_EVIDENCE,
+            reason=(f"every case errored ({errored} of {errored}), so the run measured nothing "
+                    f"about the agent; fix what crashed and run it again"),
+            pass_rate=decision.pass_rate, target=target,
+        )
+    elif errored:
+        decision.notes.append(f"{errored} of {len(results)} cases errored and count as failures; "
+                              f"read their detail before reading the pass rate as the agent's.")
+    if groups is not None:
+        decision.n_groups = len(groups)
     return Report(task=task, results=results, decision=decision, metadata=metadata)
 
 

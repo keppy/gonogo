@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from .cases import ABSTAIN, ANSWER, CaseResult, answered
+from .cases import ABSTAIN, ANSWER, ERROR, CaseResult, answered
 from .decide import Decision, Verdict
 from .stats import OperatingPoint, reliability_table, risk_coverage
 
@@ -100,7 +100,7 @@ class Report:
         """
         counts: dict[tuple[str, str], int] = {}
         for r in self.results:
-            taken = "error" if r.prediction.error else r.prediction.action
+            taken = ERROR if r.prediction.error else r.prediction.action
             key = (r.case.expected_action, taken)
             counts[key] = counts.get(key, 0) + 1
         rows = [{"expected": e, "taken": t, "n": n} for (e, t), n in counts.items()]
@@ -111,7 +111,7 @@ class Report:
             "acted_when_should_hold_back": sum(
                 n for (e, t), n in counts.items() if e != ANSWER and t == ANSWER),
             "held_back_when_should_act": sum(
-                n for (e, t), n in counts.items() if e == ANSWER and t not in (ANSWER, "error")),
+                n for (e, t), n in counts.items() if e == ANSWER and t not in (ANSWER, ERROR)),
         }
 
     def failures(self, limit: int | None = None) -> list[CaseResult]:
@@ -427,7 +427,10 @@ class Report:
             out["actions"] = self.actions()
             for entry, r in zip(out["cases"], self.results):
                 entry["expected_action"] = r.case.expected_action
-                entry["action"] = "error" if r.prediction.error else r.prediction.action
+                entry["action"] = ERROR if r.prediction.error else r.prediction.action
+        for entry, r in zip(out["cases"], self.results):
+            if r.prediction.error:  # only on errored cases, so other payloads are unchanged
+                entry["error"] = r.prediction.error
         return out
 
     def _base_dict(self) -> dict:

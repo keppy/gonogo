@@ -17,6 +17,8 @@ from typing import Any, Iterator
 # answer, and is graded by whether it matches the case's expected action.
 ANSWER = "answer"
 ABSTAIN = "abstain"
+# What a report writes as the action of a case that errored: neither acted nor held back.
+ERROR = "error"
 
 # Top-level JSONL keys that are Case fields rather than metadata.
 _RESERVED = ("input", "expected", "id", "group", "expected_action")

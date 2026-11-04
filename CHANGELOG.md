@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2026-11-04
+
+### Fixed
+
+- **`results_from_jsonl` reads an errored case.** An `error` key (a non-empty string) marks a
+  case that crashed, and loads as the result `evaluate` records for an agent that raised:
+  failed at score 0, detail `agent error: <error>` unless `detail` is given, left out of the
+  mixed-confidence check, at confidence 1.0 in a run with confidence, and counted as taken
+  action `"error"`. `action: "error"` means the same, so `gonogo decide --json` output loads
+  back as the report it came from; before, an `error` key went into case metadata and
+  `action: "error"` read as an ordinary non-answer. `passed: true` on an errored row, an
+  `error` beside any `action` other than `"error"`, and an `error` that is not a non-empty
+  string are refused with `path:line`. A `null` error is absent, like the other keys.
+- **A run where every case errored is INSUFFICIENT EVIDENCE**, with `needed_n` null and a
+  reason that says the run measured nothing about the agent; it was DO NOT AUTOMATE from a
+  pass rate of 0. This is in `report_from_results`, so `evaluate` and `decide` both reach it.
+- A run where some cases errored carries one note: `N of M cases errored and count as
+  failures; …`.
+- `Report.to_dict()` writes `error` (the message) on each errored case, and only on those, so
+  the message survives a round trip in a run without actions, where no `action` is written.
+
+Outputs for runs with no errored case are byte-for-byte unchanged, `gonogo 47/50` included.
+
 ## [0.4.4] - 2026-11-04
 
 ### Added

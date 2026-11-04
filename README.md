@@ -180,7 +180,7 @@ A review threshold selected on the measured set is a candidate. It does not auth
 | `AUTOMATE WITH REVIEW` | A candidate threshold found on this set; not permission to deploy. Test the fixed threshold on a fresh holdout before routing cases by it. `can_automate` stays false; holdout signoff is separate. |
 | `ASSIST ONLY` | Useful as a draft generator, not as an unattended step. |
 | `DO NOT AUTOMATE` | Not a fit for this workflow as scoped. |
-| `INSUFFICIENT EVIDENCE` | The estimate looks good but the sample can't support the claim. The report says roughly how many cases you'd need. |
+| `INSUFFICIENT EVIDENCE` | The estimate looks good but the sample can't support the claim. The report says roughly how many cases you'd need. Also the verdict when every case errored: the run measured nothing, and no case count is given. |
 
 ## Why confidence matters
 
@@ -330,8 +330,12 @@ gonogo compare last-week.json today.json --json   # two saved reports: the paire
 ```
 
 `results.jsonl` is one object per line with `passed` and, optionally, `id`, `confidence`,
-`expected_action`, `action`, `group`, `score` and `detail`. The rules `evaluate` applies after
+`expected_action`, `action`, `group`, `score`, `detail` and `error`. The rules `evaluate` applies after
 scoring apply here too, and a `passed` that contradicts them is refused with its line number.
+`error` (a message) marks a case that crashed, as `evaluate` records an agent that raises: it
+fails at score 0, counts as taken action `"error"`, and cannot pass. `action: "error"` means the
+same, which is what `decide --json` writes for such a case. If every case errored the verdict is
+`INSUFFICIENT EVIDENCE`, since the run measured the harness and not the agent.
 `decide --json` writes what `compare` reads, so a run scored in one language can be paired
 against a run scored in another. From Python the same path is
 `report_from_results(results_from_jsonl(path))`, which is where `evaluate` ends as well.

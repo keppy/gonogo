@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .cases import ABSTAIN, ANSWER, Case, CaseResult, Prediction, _check_action, read_jsonl_rows
+from .cases import ABSTAIN, ANSWER, ERROR, Case, CaseResult, Prediction, _check_action, read_jsonl_rows
 
 # Top-level keys that are result fields; anything else lands in case metadata.
-_RESERVED = ("id", "passed", "confidence", "expected_action", "action", "group", "score", "detail")
+_RESERVED = ("id", "passed", "confidence", "expected_action", "action", "group", "score", "detail", "error")
 
 
 def results_from_jsonl(path: str | Path) -> list[CaseResult]:
@@ -20,11 +20,19 @@ def results_from_jsonl(path: str | Path) -> list[CaseResult]:
 
     Keys: `passed` (required, true/false); `id` (default `case-<line>`);
     `confidence` in [0, 1] (all rows or none); `expected_action` and `action`
-    (default "answer"); `group`; `score`; `detail`. The rules `evaluate` applies
-    after scoring hold here too: a case that expects a non-answer passes only on
-    that action, an abstention on an answer case is a deferral at confidence
-    0.0, and any other non-answer on an answer case fails. A `passed` that
-    contradicts those is refused with its line number, not corrected.
+    (default "answer"); `group`; `score`; `detail`; `error`. The rules `evaluate`
+    applies after scoring hold here too: a case that expects a non-answer passes
+    only on that action, an abstention on an answer case is a deferral at
+    confidence 0.0, and any other non-answer on an answer case fails. A `passed`
+    that contradicts those is refused with its line number, not corrected.
+
+    `error` (a non-empty string) marks a case where the agent or the harness
+    crashed: the case `evaluate` records for an agent that raised, failed at
+    score 0 with detail `agent error: <error>`. `action: "error"`, which is what
+    `decide --json` writes for such a case, means the same. An errored row
+    cannot pass. Its confidence is optional and stays out of the
+    mixed-confidence check; left out, it sits at 1.0 in a run with confidence,
+    as a crash does in `evaluate`.
     """
     path = Path(path)
     results: list[CaseResult] = []
@@ -42,7 +50,20 @@ def results_from_jsonl(path: str | Path) -> list[CaseResult]:
         if confidence is not None and (isinstance(confidence, bool) or not isinstance(confidence, (int, float))):
             raise ValueError(f"{where}: confidence must be a number in [0, 1], got {confidence!r}")
 
-        if expected_action != ANSWER:
+        error = row.get("error")
+        if error is not None:
+            if not isinstance(error, str) or not error:
+                raise ValueError(f"{where}: error must be a non-empty string, got {error!r}")
+            if "action" in row and action != ERROR:
+                raise ValueError(f"{where}: error is set, but action is {action!r}; an errored case "
+                                 f"took no action (leave action out, or write {ERROR!r})")
+        elif action == ERROR:
+            error = ERROR
+        if error is not None:
+            if passed:
+                raise ValueError(f"{where}: an errored case cannot pass")
+            action = ANSWER  # what evaluate's crash records; the error is what marks it
+        elif expected_action != ANSWER:
             expect = action == expected_action
             if passed != expect:
                 raise ValueError(
@@ -59,7 +80,7 @@ def results_from_jsonl(path: str | Path) -> list[CaseResult]:
         score = row.get("score", 1.0 if passed else 0.0)
         try:
             prediction = Prediction(output=None, confidence=None if confidence is None else float(confidence),
-                                    action=action)
+                                    action=action, error=error)
         except ValueError as exc:
             raise ValueError(f"{where}: {exc}") from exc
         results.append(CaseResult(
@@ -69,7 +90,7 @@ def results_from_jsonl(path: str | Path) -> list[CaseResult]:
             prediction=prediction,
             passed=passed,
             score=float(score),
-            detail=str(row.get("detail", "")),
+            detail=str(row.get("detail", f"agent error: {error}" if error is not None else "")),
         ))
     if not results:
         raise ValueError(f"{path}: no results found")
