@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 from .cases import ABSTAIN, ANSWER, ERROR, CaseResult, answered
 from .decide import Decision, Verdict
-from .stats import OperatingPoint, reliability_table, risk_coverage
+from .stats import OperatingPoint, fmt_cut, fmt_share, reliability_table, risk_coverage
 
 _MARK = {
     Verdict.AUTOMATE: "Ship it.",
@@ -164,7 +164,7 @@ class Report:
         out.append(f"| Target | {d.target:.0%} |")
         if d.calibration_error == d.calibration_error:  # not NaN
             usable = "well calibrated" if d.calibration_error <= 0.15 else "ranks cases, scale unreliable"
-            out.append(f"| Calibration error | {d.calibration_error:.2f} ({usable}) |")
+            out.append(f"| Calibration error | {fmt_cut(d.calibration_error)} ({usable}) |")
         if self.errors:
             out.append(f"| Cases that errored | {len(self.errors)} |")
         out.append("")
@@ -208,11 +208,11 @@ class Report:
             out.append("## Candidate operating point (fresh holdout required)")
             out.append("")
             out.append(f"On fresh cases, test answering only at confidence "
-                       f"**{p.threshold:.2f}** or above, routing the rest to a person.")
+                       f"**{fmt_cut(p.threshold)}** or above, routing the rest to a person.")
             out.append("")
             out.append("| | |")
             out.append("| --- | --- |")
-            out.append(f"| {d.unit.capitalize()} selected for automation | {p.n_covered} of {d.pass_rate.n} ({p.coverage:.0%}) |")
+            out.append(f"| {d.unit.capitalize()} selected for automation | {p.n_covered} of {d.pass_rate.n} ({fmt_share(p.coverage)}) |")
             out.append(f"| Precision on those | {p.precision} |")
             out.append(f"| {d.unit.capitalize()} sent to review | {p.n_deferred} |")
             out.append("")
@@ -224,7 +224,7 @@ class Report:
             out.append(f"| Confidence floor | {d.unit.capitalize()} selected | Precision | {d.unit.capitalize()} to review |")
             out.append("| --- | --- | --- | --- |")
             for p in _thin(curve, 8):
-                out.append(f"| {p.threshold:.2f} | {p.coverage:.0%} | {p.precision} | {p.n_deferred} |")
+                out.append(f"| {fmt_cut(p.threshold)} | {fmt_share(p.coverage)} | {p.precision} | {p.n_deferred} |")
             out.append("")
 
         table = reliability_table(pairs)
@@ -304,7 +304,7 @@ class Report:
                      ("Pass rate", rate_html), ("Target", f"{d.target:.0%}")]
         if d.calibration_error == d.calibration_error:
             usable = "well calibrated" if d.calibration_error <= 0.15 else "ranks cases, scale unreliable"
-            facts.append(("Calibration error", f"{d.calibration_error:.2f} ({usable})"))
+            facts.append(("Calibration error", f"{fmt_cut(d.calibration_error)} ({usable})"))
         if self.errors:
             facts.append(("Cases that errored", str(len(self.errors))))
         if d.needed_n:
@@ -357,9 +357,9 @@ class Report:
             rows.append('<div class="gng-op">')
             rows.append('<p class="gng-op-title">Candidate operating point (fresh holdout required)</p>')
             rows.append(f'<p>On fresh cases, test answering at confidence '
-                        f'<b>{p.threshold:.2f}</b> or above; route the rest to a person.</p>')
+                        f'<b>{fmt_cut(p.threshold)}</b> or above; route the rest to a person.</p>')
             rows.append(f'<p class="gng-op-nums">{p.n_covered} of {d.pass_rate.n} {d.unit} selected '
-                        f'({p.coverage:.0%}) at {p.precision} precision, '
+                        f'({fmt_share(p.coverage)}) at {p.precision} precision, '
                         f'{p.n_deferred} to review.</p>')
             rows.append('</div>')
 
@@ -373,9 +373,9 @@ class Report:
                 meets = p.precision.low >= d.target
                 flag = "ok" if meets else "under"
                 rows.append(
-                    f'<tr><td>{p.threshold:.2f}</td>'
+                    f'<tr><td>{fmt_cut(p.threshold)}</td>'
                     f'<td><span class="gng-bar" style="--pct:{p.coverage:.0%}"><i></i></span>'
-                    f'{p.coverage:.0%}</td>'
+                    f'{fmt_share(p.coverage)}</td>'
                     f'<td class="gng-{flag}">{p.precision.point:.1%} '
                     f'<span class="gng-ci">[{p.precision.low:.1%}, {p.precision.high:.1%}]</span></td>'
                     f'<td>{p.n_deferred}</td></tr>')

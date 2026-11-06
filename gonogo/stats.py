@@ -14,6 +14,27 @@ from dataclasses import dataclass
 _Z = {0.80: 1.2815515655446004, 0.90: 1.6448536269514722, 0.95: 1.959963984540054, 0.99: 2.5758293035489004}
 
 
+def fmt_cut(x: float) -> str:
+    """A cut point (threshold, calibration error) printed so it reproduces itself.
+
+    At least 2 places, at most 4: the fewest that show the value rounded to 4 places.
+    `f"{0.625:.2f}"` is "0.62" (half-even), and a reader who sets 0.62 admits cases
+    the measurement excluded; this prints "0.625". 0.8 still prints "0.80".
+    """
+    target = round(x, 4)
+    for places in (2, 3):
+        s = f"{x:.{places}f}"
+        if float(s) == target:
+            return s
+    return f"{x:.4f}"
+
+
+def fmt_share(frac: float) -> str:
+    """A fraction of cases as a percent: whole when it is whole, else one place (62.5%)."""
+    pct = round(frac * 100, 1)
+    return f"{frac:.0%}" if pct == int(pct) else f"{frac:.1%}"
+
+
 def z_for(level: float) -> float:
     """z value for a two-sided interval at `level`."""
     if level in _Z:
@@ -128,7 +149,7 @@ class OperatingPoint:
     n_deferred: int           # cases routed to a human
 
     def __str__(self) -> str:
-        return (f"abstain below {self.threshold:.2f} -> {self.coverage:.0%} coverage "
+        return (f"abstain below {fmt_cut(self.threshold)} -> {fmt_share(self.coverage)} coverage "
                 f"at {self.precision.point:.1%} precision, {self.n_deferred} to review")
 
 

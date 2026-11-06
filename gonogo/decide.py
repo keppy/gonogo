@@ -14,6 +14,8 @@ from .stats import (
     OperatingPoint,
     best_operating_point,
     expected_calibration_error,
+    fmt_cut,
+    fmt_share,
     required_n,
     wilson,
 )
@@ -66,11 +68,19 @@ def decide(
     level: float = 0.95,
     min_coverage: float = MIN_USEFUL_COVERAGE,
     unit: str = "cases",
+    calibrated: bool | None = None,
 ) -> Decision:
     """Turn per-trial (confidence, passed) results into a deployment decision.
 
     `unit` is the word for one trial in the wording -- "cases" normally,
     "groups" when `evaluate` folded correlated cases into one trial each.
+
+    `calibrated` says whether the confidences are the agent's own. Distinct
+    confidences are a ranking signal either way (an abstention sits at 0.0 and
+    an answer at 1.0, and "automate what the agent didn't abstain on" is a fair
+    operating point), but a calibration error means something only when the agent
+    supplied the numbers. `report_from_results` passes it; left as None, any
+    spread of confidences is read as the agent's own, as before.
 
     The ordering is deliberate. We ask "is the whole task good enough?" first,
     then "is some confident subset good enough?", and only then do we consider
@@ -97,12 +107,20 @@ def decide(
     has_confidence = len({c for c, _ in results}) > 1
     # With no confidence signal (every case defaulted to the same value), an
     # ECE would just measure |accuracy - 1| and read as miscalibration the
-    # agent never claimed. Leave it NaN so reports omit the line entirely.
-    ece = expected_calibration_error(results) if has_confidence else float("nan")
+    # agent never claimed. Leave it NaN so reports omit the line entirely. The
+    # same holds when the only spread is synthetic (abstentions at 0.0, answers
+    # defaulted to 1.0): the threshold still works, the calibration error does not.
+    measures_calibration = has_confidence and calibrated is not False
+    ece = expected_calibration_error(results) if measures_calibration else float("nan")
     if not has_confidence:
         notes.append(
             "Every case reported the same confidence, so no abstention threshold "
             "can be derived. Emit a real per-case confidence to unlock selective automation."
+        )
+    elif not measures_calibration:
+        notes.append(
+            "No answered case reported its own confidence, so calibration is not measured; "
+            "a threshold here can only separate answers from abstentions and errored cases."
         )
 
     # 1. The whole task clears the bar on its own.
@@ -123,24 +141,24 @@ def decide(
     # value is a cut point rather than a probability -- worth saying out loud,
     # not worth throwing away a working operating point over.
     if has_confidence:
-        if ece > ECE_UNUSABLE:
+        if measures_calibration and ece > ECE_UNUSABLE:
             notes.append(
-                f"Calibration error {ece:.2f} exceeds {ECE_UNUSABLE:.2f}: the confidence score "
+                f"Calibration error {fmt_cut(ece)} exceeds {fmt_cut(ECE_UNUSABLE)}: the confidence score "
                 f"ranks cases usefully but its scale is not a probability. Treat any threshold "
                 f"below as an opaque cut point, and recalibrate before reading it as a percentage."
             )
         point = best_operating_point(results, target, min_coverage, level)
         if point is not None:
             notes.append(
-                f"The {point.threshold:.2f} threshold was chosen by searching this same case "
+                f"The {fmt_cut(point.threshold)} threshold was chosen by searching this same case "
                 f"set, so its precision is optimistically biased. Re-measure it on fresh cases "
                 f"before relying on it."
             )
             return Decision(
                 verdict=Verdict.AUTOMATE_WITH_REVIEW,
                 reason=(f"overall pass rate {rate} misses the {target:.0%} target; "
-                        f"a candidate threshold at confidence {point.threshold:.2f} reaches "
-                        f"{point.precision.point:.1%} precision on {point.coverage:.0%} of {unit} "
+                        f"a candidate threshold at confidence {fmt_cut(point.threshold)} reaches "
+                        f"{point.precision.point:.1%} precision on {fmt_share(point.coverage)} of {unit} "
                         f"on this selection set, but needs a fresh holdout before deployment"),
                 pass_rate=rate, target=target, operating_point=point,
                 calibration_error=ece, notes=notes,
@@ -148,17 +166,25 @@ def decide(
         near = best_operating_point(results, target, 0.0, level)
         if near is not None:
             notes.append(
-                f"A threshold of {near.threshold:.2f} would hit the target but only covers "
-                f"{near.coverage:.0%} of {unit}, below the {min_coverage:.0%} floor."
+                f"A threshold of {fmt_cut(near.threshold)} would hit the target but only covers "
+                f"{fmt_share(near.coverage)} of {unit}, below the {min_coverage:.0%} floor."
             )
 
     # 3. The point estimate looks good but the sample can't support the claim.
     if rate.point >= target:
         needed = required_n(rate.point, target, level)
+        # At exactly the target no sample size helps (required_n is None): a lower
+        # bound sits below its point, so it cannot clear a target the point only equals.
+        reason = (f"observed {rate.point:.1%} on {n} {unit} is above the {target:.0%} target, "
+                  f"but the {level:.0%} interval reaches down to {rate.low:.1%}")
+        if rate.point == target:
+            reason = (f"observed {rate.point:.1%} on {n} {unit} is at the {target:.0%} target, "
+                      f"and the {level:.0%} interval reaches down to {rate.low:.1%}; a lower bound "
+                      f"cannot clear a target the point only equals, so more {unit} at this rate "
+                      f"will not settle it")
         return Decision(
             verdict=Verdict.INSUFFICIENT_EVIDENCE,
-            reason=(f"observed {rate.point:.1%} on {n} {unit} is above the {target:.0%} target, "
-                    f"but the {level:.0%} interval reaches down to {rate.low:.1%}"),
+            reason=reason,
             pass_rate=rate, target=target, calibration_error=ece, needed_n=needed,
             notes=notes + ([f"At this rate, about {needed} {unit} would be needed to claim "
                             f"{target:.0%}; you have {n}."] if needed else []),

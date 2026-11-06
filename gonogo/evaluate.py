@@ -166,7 +166,8 @@ def report_from_results(
         trials = [(min(r.confidence for r in rs), all(r.passed for r in rs)) for rs in groups.values()]
     unit = "cases" if groups is None else "groups"
 
-    decision = decide(trials, target=target, level=level, min_coverage=min_coverage, unit=unit)
+    decision = decide(trials, target=target, level=level, min_coverage=min_coverage, unit=unit,
+                      calibrated=supplied)
     errored = sum(1 for r in results if r.prediction.error)
     if errored == len(results):
         # A pass rate of zero here is the harness breaking, not the agent failing.

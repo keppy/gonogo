@@ -13,6 +13,7 @@ McNemar's test throws those away and looks only at the disagreements.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass
 from typing import Any, Mapping
@@ -171,6 +172,25 @@ def outcomes(report: Any) -> dict[str, bool]:
         out[str(case_id)] = passed
     return out
 
+def _row_outcomes(entries: list[Any]) -> dict[str, bool]:
+    """Per-row trials keyed by (group, id), for grouped rows that were not folded."""
+    out: dict[str, bool] = {}
+    for entry in entries:
+        if isinstance(entry, Mapping):
+            group, cid, passed = entry.get("group"), entry.get("id"), entry.get("passed")
+        else:
+            group, cid, passed = entry.case.group, entry.case.id, entry.passed
+        if cid is None:
+            raise ValueError("every case needs an id to pair on")
+        if not isinstance(passed, bool):
+            raise ValueError(f"case {cid!r}: passed must be a boolean")
+        key = json.dumps([None if group is None else str(group), str(cid)])
+        if key in out:
+            where = "" if group is None else f" within group {str(group)!r}"
+            raise ValueError(f"duplicate case id {cid!r}{where}; ids must be unique to pair on")
+        out[key] = passed
+    return out
+
 def _trial_outcomes(report: Any) -> tuple[dict[str, bool], dict[str, set[str]] | None]:
     """Fold grouped runs to independent group trials, preserving membership."""
     cases = report.get("cases") if isinstance(report, Mapping) else getattr(report, "results", None)
@@ -183,6 +203,10 @@ def _trial_outcomes(report: Any) -> tuple[dict[str, bool], dict[str, set[str]] |
     implicit = isinstance(report, Mapping) and "n_groups" not in report and any(
         e.get("group") is not None for e in entries if isinstance(e, Mapping))
     if not (explicit or implicit):
+        if any((e.get("group") if isinstance(e, Mapping) else e.case.group) is not None for e in entries):
+            # Grouped rows decided with group_rule "none": every row is its own trial,
+            # and ids repeat across groups by design, so a row is (group, id).
+            return _row_outcomes(entries), None
         return outcomes(report), None
     passed_by_group: dict[str, bool] = {}
     membership: dict[str, set[str]] = {}

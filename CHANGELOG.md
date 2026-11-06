@@ -4,6 +4,40 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-11-06
+
+### Fixed
+
+Four behaviours the TypeScript port (`gonogo-eval` on npm) surfaced by copying them faithfully.
+
+- **`compare` pairs a `--group-rule none` report of grouped rows.** `decide --json` writes
+  `n_groups: null` there, so `compare` paired on case id, and since ids repeat across groups by
+  design it refused with `duplicate case id`. Rows that carry `group` in an unfolded report now
+  pair on (group, id), one trial per row. A repeated id inside one group is still refused, and
+  folded (`--group-rule all`) reports still pair by group.
+- **A point estimate exactly at the target says so.** 19/20 at 0.95 read "is above the 95%
+  target" with no sample size; the reason now says the point is *at* the target and that a lower
+  bound can't clear a target the point only equals, so more cases at this rate won't settle it.
+  The verdict (INSUFFICIENT EVIDENCE) and `needed_n: null` are unchanged.
+- **Cut points print so they reproduce themselves.** Thresholds and calibration errors print with
+  the fewest places (2 to 4) that show the value to 4 places: a 0.625 threshold printed "0.62"
+  (half-even), and a reader who set 0.62 admitted cases the measurement excluded; it prints
+  "0.625". 0.80 still prints "0.80". Coverage prints one decimal when it isn't whole ("62.5%",
+  was "62%"). "Calibration error 0.15 exceeds 0.15" (value 0.150375) reads "0.1504 exceeds 0.15".
+  This is in `reason`, `notes`, `OperatingPoint.__str__`, and the markdown and HTML reports;
+  numeric JSON fields were always exact and are unchanged. New helpers: `stats.fmt_cut`,
+  `stats.fmt_share`.
+- **A run whose answers carry no confidence of their own gets no calibration error.** With no
+  `confidence` on any answered row, abstentions sit at 0.0 and answers default to 1.0. That spread
+  still yields the threshold "automate what the agent didn't abstain on", and keeps it, but it
+  computed a calibration error (|accuracy − 1|) and fired the miscalibration note. `decide()` takes
+  `calibrated=` (default `None`, the old reading), and `report_from_results` passes whether any
+  answered case supplied a confidence. Without one, `calibration_error` is null and a note says
+  calibration is not measured. A confidence given only on errored rows doesn't count, as in 0.4.5.
+
+Outputs that involve none of these are byte-for-byte unchanged, `gonogo 47/50` included. Reports
+committed under `examples/` are records of earlier runs and are not regenerated.
+
 ## [0.4.5] - 2026-11-04
 
 ### Fixed
